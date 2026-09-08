@@ -203,6 +203,35 @@
 
   .spacer-fab{height:88px;}
 
+  /* ---------- review banner ---------- */
+  .review-banner{
+    background:linear-gradient(135deg,#e2b13c,#b6841f);
+    color:#fff;
+    border-radius:var(--radius-lg);
+    padding:16px 18px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    margin-bottom:18px;
+    transition:transform .15s ease;
+    border:none;
+    width:100%;
+    text-align:left;
+  }
+  .review-banner:active{transform:scale(0.98);}
+  .review-banner.disabled{
+    background:var(--card-bg);
+    color:var(--ink-soft);
+    cursor:default;
+    box-shadow:var(--shadow-sm);
+  }
+  .review-banner .emoji{font-size:30px;flex:0 0 auto;}
+  .review-banner .info{flex:1;min-width:0;}
+  .review-banner .info h3{margin:0;font-size:15px;}
+  .review-banner .info p{margin:4px 0 0;font-size:12px;opacity:0.9;}
+
   /* ---------- edit lesson screen ---------- */
   .field{margin-bottom:16px;}
   .field label{
@@ -295,6 +324,33 @@
   details.bulk-add[open] summary::before{content:"➖";}
 
   /* ---------- study screen ---------- */
+  .mode-switch{
+    display:flex;
+    background:var(--card-bg);
+    border-radius:14px;
+    padding:4px;
+    box-shadow:var(--shadow-sm);
+    margin-bottom:16px;
+    gap:4px;
+  }
+  .mode-switch button{
+    flex:1;
+    border:none;
+    background:transparent;
+    padding:10px 6px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  .mode-switch button.active{
+    background:linear-gradient(135deg,var(--red),var(--red-dark));
+    color:#fff;
+  }
+  .mode-switch button:disabled{opacity:0.4;cursor:default;}
+
   .study-header{
     display:flex;
     flex-direction:column;
@@ -333,12 +389,6 @@
     cursor:pointer;
   }
   .flashcard.flipped{transform:rotateY(180deg);}
-  .flashcard.pop{animation:pop .28s ease;}
-  @keyframes pop{
-    0%{transform:scale(0.9) rotateY(var(--ry,0deg));}
-    60%{transform:scale(1.03) rotateY(var(--ry,0deg));}
-    100%{transform:scale(1) rotateY(var(--ry,0deg));}
-  }
 
   .card-face{
     position:absolute;inset:0;
@@ -385,6 +435,17 @@
     margin-top:14px;font-size:12px;opacity:0.75;
   }
 
+  .srs-controls{
+    display:flex;gap:12px;margin:4px 0 18px;
+  }
+  .srs-btn{
+    flex:1;border:none;border-radius:16px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:var(--shadow-sm);
+    transition:transform .12s ease;
+  }
+  .srs-btn:active{transform:scale(0.96);}
+  .srs-btn.repeat{background:#fdeceb;color:var(--red-dark);}
+  .srs-btn.know{background:#e6f4ea;color:var(--green);}
+
   .study-controls{
     display:flex;
     align-items:center;
@@ -415,6 +476,7 @@
     box-shadow:var(--shadow-sm);
     font-size:18px;
     cursor:pointer;
+    flex:0 0 auto;
   }
   .icon-round-btn:active{transform:scale(0.92);}
   .icon-round-btn.active{background:var(--gold-soft);}
@@ -426,6 +488,51 @@
     background:none;border:none;color:var(--ink-soft);font-size:13px;
     text-decoration:underline;cursor:pointer;padding:8px;
   }
+
+  /* ---------- quiz mode ---------- */
+  .quiz-card{
+    background:linear-gradient(150deg,#ffffff,#fff6ee);
+    border:1px solid rgba(212,167,44,0.35);
+    border-radius:28px;
+    box-shadow:var(--shadow);
+    padding:36px 24px;
+    text-align:center;
+    margin-bottom:20px;
+  }
+  .quiz-hanzi{
+    font-size:clamp(48px,14vw,68px);
+    font-weight:700;
+    line-height:1.1;
+    word-break:break-word;
+  }
+  .quiz-options{
+    display:flex;flex-direction:column;gap:10px;margin-bottom:6px;
+  }
+  .quiz-option{
+    background:var(--card-bg);
+    border:2px solid rgba(0,0,0,0.08);
+    border-radius:14px;
+    padding:14px 16px;
+    font-size:15px;
+    font-weight:600;
+    text-align:left;
+    cursor:pointer;
+    color:var(--ink);
+    transition:transform .1s ease, background .2s ease, border-color .2s ease;
+  }
+  .quiz-option:active{transform:scale(0.98);}
+  .quiz-option.correct{
+    background:#e6f4ea;border-color:var(--green);color:#256b42;
+  }
+  .quiz-option.incorrect{
+    background:#fdeceb;border-color:var(--red);color:var(--red-dark);
+  }
+  .quiz-option.disabled{cursor:default;}
+  .quiz-feedback{
+    text-align:center;font-weight:700;font-size:15px;margin:8px 0 18px;min-height:22px;
+  }
+  .quiz-feedback.correct{color:var(--green);}
+  .quiz-feedback.incorrect{color:var(--red-dark);}
 
   /* ---------- congrats screen ---------- */
   .congrats{
@@ -445,8 +552,37 @@
     to{transform:translateY(-10px);}
   }
   .congrats h2{margin:8px 0 4px;font-size:24px;}
-  .congrats p{color:var(--ink-soft);margin:0 0 20px;font-size:14px;}
-  .congrats .btn-row{width:100%;max-width:320px;}
+  .congrats p{color:var(--ink-soft);margin:0 0 6px;font-size:14px;}
+  .congrats .btn-row{width:100%;max-width:320px;margin-top:20px;}
+
+  /* ---------- stats screen ---------- */
+  .stats-tiles{
+    display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;
+  }
+  .stat-tile{
+    background:var(--card-bg);border-radius:16px;padding:18px 12px;box-shadow:var(--shadow-sm);text-align:center;
+  }
+  .stat-tile .value{font-size:26px;font-weight:800;color:var(--red-dark);}
+  .stat-tile .label{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+
+  .chart-card{
+    background:var(--card-bg);border-radius:var(--radius-lg);padding:18px 14px 12px;box-shadow:var(--shadow-sm);margin-bottom:20px;
+  }
+  .chart-card h3{margin:0 0 16px;font-size:14px;}
+  .chart-scroll{overflow-x:auto;padding-bottom:4px;}
+  .chart-bars{
+    display:flex;align-items:flex-end;gap:6px;height:130px;min-width:min-content;
+  }
+  .chart-bar-wrap{
+    display:flex;flex-direction:column-reverse;align-items:center;gap:6px;width:16px;flex:0 0 auto;height:100%;
+  }
+  .chart-bar{
+    width:100%;
+    background:linear-gradient(180deg,var(--gold),var(--red));
+    border-radius:4px 4px 0 0;
+    min-height:2px;
+  }
+  .chart-bar-label{font-size:8px;color:var(--ink-soft);white-space:nowrap;}
 
   .toast{
     position:fixed;
@@ -495,12 +631,17 @@
 <div id="app"></div>
 <div class="toast" id="toast"></div>
 
+<!-- Библиотека транслитерации иероглифов в пиньинь (для автогенерации при добавлении слов) -->
+<script src="https://cdn.jsdelivr.net/npm/pinyin-pro/dist/index.js"></script>
+
 <script>
 (function(){
   "use strict";
 
   /* ===================== DATA LAYER ===================== */
   var STORAGE_KEY = "hanzi_flashcards_lessons_v1";
+  var STATS_KEY = "hanzi_flashcards_stats_v1";
+  var LEARNED_INTERVAL_THRESHOLD = 21; // дней — считаем слово "выученным"
 
   function loadLessons(){
     try{
@@ -520,6 +661,139 @@
 
   function uid(){
     return Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,9);
+  }
+
+  /* ---------- дата и время ---------- */
+  function formatDate(d){
+    var y = d.getFullYear(), m = ("0"+(d.getMonth()+1)).slice(-2), day = ("0"+d.getDate()).slice(-2);
+    return y + "-" + m + "-" + day;
+  }
+  function todayStr(){ return formatDate(new Date()); }
+  function addDays(date, days){
+    var d = new Date(date.getTime());
+    d.setDate(d.getDate() + days);
+    return d;
+  }
+
+  /* ---------- пиньинь автогенерация (pinyin-pro, подключена через CDN) ---------- */
+  function autoPinyin(hanzi){
+    try{
+      if(window.pinyinPro && typeof window.pinyinPro.pinyin === "function"){
+        var result = window.pinyinPro.pinyin(hanzi, { toneType: "symbol" });
+        return (result || "").trim();
+      }
+    }catch(e){
+      console.warn("Pinyin generation failed", e);
+    }
+    return "";
+  }
+
+  /* ---------- SRS (упрощённый SM-2) ---------- */
+  function ensureSrs(word){
+    if(!word.srs){
+      word.srs = { interval: 0, easeFactor: 2.5, repetitions: 0, nextReviewDate: null };
+    }
+    return word.srs;
+  }
+
+  function isDue(word){
+    var s = ensureSrs(word);
+    if(!s.nextReviewDate) return true;
+    return s.nextReviewDate <= todayStr();
+  }
+
+  function updateEaseFactor(ef, q){
+    var next = ef + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
+    return Math.max(1.3, next);
+  }
+
+  function srsAnswer(word, correct){
+    var s = ensureSrs(word);
+    var q = correct ? 5 : 2;
+    s.easeFactor = updateEaseFactor(s.easeFactor, q);
+    if(correct){
+      s.repetitions = (s.repetitions || 0) + 1;
+      if(s.repetitions === 1) s.interval = 1;
+      else if(s.repetitions === 2) s.interval = 6;
+      else s.interval = Math.round(s.interval * s.easeFactor);
+    } else {
+      s.repetitions = 0;
+      s.interval = 1;
+    }
+    s.nextReviewDate = formatDate(addDays(new Date(), s.interval));
+    s.lastReviewDate = todayStr();
+  }
+
+  function getDueWords(){
+    var due = [];
+    state.lessons.forEach(function(lesson){
+      lesson.words.forEach(function(w){
+        if(isDue(w)) due.push(w);
+      });
+    });
+    persist();
+    return due;
+  }
+
+  function countLearnedWords(){
+    var count = 0;
+    state.lessons.forEach(function(lesson){
+      lesson.words.forEach(function(w){
+        if(w.srs && w.srs.interval >= LEARNED_INTERVAL_THRESHOLD) count++;
+      });
+    });
+    return count;
+  }
+
+  /* ---------- статистика по дням ---------- */
+  function loadStats(){
+    try{
+      var raw = localStorage.getItem(STATS_KEY);
+      var parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    }catch(e){
+      return [];
+    }
+  }
+  function saveStats(stats){
+    localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+  }
+  function logCardReviewed(){
+    var stats = loadStats();
+    var today = todayStr();
+    var entry = null;
+    for(var i=0;i<stats.length;i++){
+      if(stats[i].date === today){ entry = stats[i]; break; }
+    }
+    if(entry){ entry.count += 1; }
+    else { stats.push({ date: today, count: 1 }); }
+    saveStats(stats);
+  }
+  function computeStreak(){
+    var stats = loadStats();
+    var map = {};
+    stats.forEach(function(s){ map[s.date] = s.count; });
+    var d = new Date();
+    if(!(map[formatDate(d)] > 0)){
+      d = addDays(d, -1);
+    }
+    var streak = 0;
+    while(map[formatDate(d)] > 0){
+      streak++;
+      d = addDays(d, -1);
+    }
+    return streak;
+  }
+  function last30Days(){
+    var arr = [];
+    for(var i=29;i>=0;i--){
+      arr.push(formatDate(addDays(new Date(), -i)));
+    }
+    return arr;
+  }
+  function dayLabel(dateStr){
+    var d = new Date(dateStr + "T00:00:00");
+    return ("0"+d.getDate()).slice(-2) + "." + ("0"+(d.getMonth()+1)).slice(-2);
   }
 
   var seedIfEmpty = function(){
@@ -543,17 +817,26 @@
 
   /* ===================== APP STATE ===================== */
   var state = {
-    route: "home",          // home | edit | study | done
+    route: "home",          // home | edit | study | done | stats
     lessons: seedIfEmpty(),
     currentLessonId: null,
     editingLessonId: null,  // null = creating new
     editingTitle: "",
-    editingWords: [],       // [{id,hanzi,pinyin,translation}]
+    editingWords: [],       // [{id,hanzi,pinyin,translation,srs}]
     study: {
+      words: [],             // слова текущей тренировочной сессии (ссылки на реальные объекты)
       order: [],
       index: 0,
       flipped: false,
-      shuffled: false
+      shuffled: false,
+      mode: "cards",          // cards | quiz
+      quizOptions: [],
+      quizAnswered: false,
+      quizSelectedIndex: null,
+      quizCorrectCount: 0,
+      quizTotalAnswered: 0,
+      sessionType: "lesson",  // lesson | review
+      sessionLabel: ""
     },
     confirmDelete: null      // lesson id pending delete confirmation
   };
@@ -591,7 +874,7 @@
     state.editingLessonId = lessonId;
     state.editingTitle = lesson.title;
     state.editingWords = lesson.words.map(function(w){
-      return {id:w.id, hanzi:w.hanzi, pinyin:w.pinyin, translation:w.translation};
+      return {id:w.id, hanzi:w.hanzi, pinyin:w.pinyin, translation:w.translation, srs:w.srs};
     });
     render();
   }
@@ -604,14 +887,33 @@
     }
     state.currentLessonId = lessonId;
     state.route = "study";
+    state.study.sessionType = "lesson";
+    state.study.sessionLabel = lesson.title;
+    state.study.words = lesson.words;
+    state.study.mode = "cards";
     resetStudy(false);
     render();
   }
 
+  function openReviewSession(){
+    var due = getDueWords();
+    if(due.length === 0){
+      showToast("На сегодня повторять нечего 🎉");
+      return;
+    }
+    state.currentLessonId = null;
+    state.route = "study";
+    state.study.sessionType = "review";
+    state.study.sessionLabel = "Повторение";
+    state.study.words = due;
+    state.study.mode = "cards";
+    resetStudy(true);
+    render();
+  }
+
   function resetStudy(shuffle){
-    var lesson = findLesson(state.currentLessonId);
-    if(!lesson) return;
-    var order = lesson.words.map(function(_, i){ return i; });
+    var words = state.study.words;
+    var order = words.map(function(_, i){ return i; });
     if(shuffle){
       shuffleArray(order);
       state.study.shuffled = true;
@@ -621,6 +923,14 @@
     state.study.order = order;
     state.study.index = 0;
     state.study.flipped = false;
+    state.study.quizAnswered = false;
+    state.study.quizSelectedIndex = null;
+    state.study.quizOptions = [];
+    state.study.quizCorrectCount = 0;
+    state.study.quizTotalAnswered = 0;
+    if(state.study.mode === "quiz"){
+      generateQuizOptions();
+    }
   }
 
   function shuffleArray(arr){
@@ -629,6 +939,80 @@
       var tmp = arr[i]; arr[i]=arr[j]; arr[j]=tmp;
     }
     return arr;
+  }
+
+  /* ---------- режим "Угадай перевод" ---------- */
+  function generateQuizOptions(){
+    var words = state.study.words;
+    var order = state.study.order;
+    var word = words[order[state.study.index]];
+    var pool = words.filter(function(w){
+      return w !== word && (w.translation||"").trim() !== "";
+    });
+    shuffleArray(pool);
+    var distractors = pool.slice(0,3);
+    var options = distractors.map(function(w){ return { text: w.translation, isCorrect:false }; });
+    options.push({ text: word.translation || "—", isCorrect:true });
+    shuffleArray(options);
+    state.study.quizOptions = options;
+    state.study.quizAnswered = false;
+    state.study.quizSelectedIndex = null;
+  }
+
+  function switchStudyMode(mode){
+    if(state.study.mode === mode) return;
+    state.study.mode = mode;
+    state.study.flipped = false;
+    if(mode === "quiz"){
+      generateQuizOptions();
+    }
+    render();
+  }
+
+  function handleMarkCard(word, correct){
+    srsAnswer(word, correct);
+    persist();
+    goToNextCard();
+  }
+
+  function handleQuizAnswer(word, optionIndex){
+    if(state.study.quizAnswered) return;
+    var opt = state.study.quizOptions[optionIndex];
+    var correct = !!opt.isCorrect;
+    state.study.quizAnswered = true;
+    state.study.quizSelectedIndex = optionIndex;
+    state.study.quizTotalAnswered++;
+    if(correct) state.study.quizCorrectCount++;
+    srsAnswer(word, correct);
+    persist();
+    render();
+  }
+
+  function goToNextCard(){
+    var total = state.study.order.length;
+    logCardReviewed();
+    if(state.study.index < total - 1){
+      state.study.index++;
+      state.study.flipped = false;
+      if(state.study.mode === "quiz"){
+        generateQuizOptions();
+      }
+      render();
+    } else {
+      state.route = "done";
+      render();
+    }
+  }
+
+  function goToPrevCard(){
+    if(state.study.index > 0){
+      state.study.index--;
+      state.study.flipped = false;
+      if(state.study.mode === "quiz"){
+        generateQuizOptions();
+      }
+      render();
+    }
   }
 
   /* ===================== TOAST ===================== */
@@ -649,6 +1033,7 @@
     else if(state.route === "edit") app.appendChild(renderEdit());
     else if(state.route === "study") app.appendChild(renderStudy());
     else if(state.route === "done") app.appendChild(renderDone());
+    else if(state.route === "stats") app.appendChild(renderStats());
 
     if(state.confirmDelete){
       app.appendChild(renderDeleteModal());
@@ -667,8 +1052,28 @@
     var screen = el("div","screen");
 
     var header = el("header","topbar");
-    header.innerHTML = '<div><h1>🏮 汉字 Карточки<span class="sub">Учи иероглифы легко</span></h1></div>';
+    var titleEl = el("h1", null, '🏮 汉字 Карточки<span class="sub">Учи иероглифы легко</span>');
+    header.appendChild(titleEl);
+    var statsBtn = el("button","icon-round-btn","📊");
+    statsBtn.title = "Статистика";
+    statsBtn.addEventListener("click", function(){
+      state.route = "stats";
+      render();
+    });
+    header.appendChild(statsBtn);
     screen.appendChild(header);
+
+    var due = getDueWords();
+    var banner = el("button","review-banner" + (due.length === 0 ? " disabled" : ""));
+    banner.innerHTML =
+      '<span class="emoji">🔁</span>' +
+      '<div class="info"><h3>Повторить сегодня</h3><p>' +
+      (due.length > 0 ? (due.length + " " + pluralWords(due.length) + " на повторении") : "Все слова повторены ✅") +
+      '</p></div>';
+    if(due.length > 0){
+      banner.addEventListener("click", openReviewSession);
+    }
+    screen.appendChild(banner);
 
     if(state.lessons.length === 0){
       var empty = el("div","empty-state");
@@ -827,8 +1232,8 @@
     details.innerHTML =
       '<summary>Вставить список слов сразу</summary>' +
       '<div class="field" style="margin-bottom:8px;">' +
-        '<textarea id="bulk-textarea" rows="5" placeholder="你好 - nǐ hǎo - привет\n谢谢 - xièxie - спасибо"></textarea>' +
-        '<div class="hint">По одному слову на строку в формате: <b>иероглиф - пиньинь - перевод</b></div>' +
+        '<textarea id="bulk-textarea" rows="5" placeholder="你好 - nǐ hǎo - привет\n谢谢 - спасибо"></textarea>' +
+        '<div class="hint">По одному слову на строку: <b>иероглиф - пиньинь - перевод</b>. Пиньинь можно не указывать — сгенерируется автоматически (<b>иероглиф - перевод</b>).</div>' +
       '</div>';
     var bulkBtn = el("button","btn-secondary","Добавить из списка");
     bulkBtn.addEventListener("click", function(){
@@ -878,18 +1283,29 @@
     if(!trimmed) return null;
     // split on " - " or " – " or " — " (with surrounding spaces preferred to avoid breaking pinyin tone marks)
     var parts = trimmed.split(/\s+[-–—]\s+/);
-    if(parts.length < 3){
+    if(parts.length < 2){
       // fallback: split on bare dash
       parts = trimmed.split(/[-–—]/).map(function(s){return s.trim();}).filter(Boolean);
     } else {
       parts = parts.map(function(s){return s.trim();});
     }
-    if(parts.length < 3) return null;
-    return {
-      hanzi: parts[0],
-      pinyin: parts[1],
-      translation: parts.slice(2).join(" - ")
-    };
+    if(parts.length < 2) return null;
+
+    var hanzi, pinyin, translation;
+    if(parts.length >= 3){
+      hanzi = parts[0];
+      pinyin = parts[1];
+      translation = parts.slice(2).join(" - ");
+    } else {
+      // только 2 части: иероглиф - перевод (пиньинь сгенерируется автоматически)
+      hanzi = parts[0];
+      pinyin = "";
+      translation = parts[1];
+    }
+    if(!pinyin && hanzi){
+      pinyin = autoPinyin(hanzi);
+    }
+    return { hanzi: hanzi, pinyin: pinyin, translation: translation };
   }
 
   function renderWordRows(container){
@@ -910,10 +1326,20 @@
       hanziInput.placeholder = "汉字";
       hanziInput.value = word.hanzi;
       hanziInput.addEventListener("input", function(){ word.hanzi = hanziInput.value; });
+      hanziInput.addEventListener("blur", function(){
+        // автогенерация пиньиня, только если поле пиньиня ещё пустое
+        if(!word.pinyin && word.hanzi){
+          var auto = autoPinyin(word.hanzi);
+          if(auto){
+            word.pinyin = auto;
+            pinyinInput.value = auto;
+          }
+        }
+      });
 
       var pinyinInput = document.createElement("input");
       pinyinInput.type = "text";
-      pinyinInput.placeholder = "pīnyīn";
+      pinyinInput.placeholder = "pīnyīn (авто, если пусто)";
       pinyinInput.value = word.pinyin;
       pinyinInput.addEventListener("input", function(){ word.pinyin = pinyinInput.value; });
 
@@ -948,11 +1374,18 @@
     }
     var cleanWords = state.editingWords
       .map(function(w){
+        var hanzi = w.hanzi.trim();
+        var pinyin = w.pinyin.trim();
+        var translation = w.translation.trim();
+        if(!pinyin && hanzi){
+          pinyin = autoPinyin(hanzi); // подстраховка, если авто-заполнение по blur не сработало
+        }
         return {
           id: w.id,
-          hanzi: w.hanzi.trim(),
-          pinyin: w.pinyin.trim(),
-          translation: w.translation.trim()
+          hanzi: hanzi,
+          pinyin: pinyin,
+          translation: translation,
+          srs: w.srs // сохраняем прогресс интервального повторения при редактировании
         };
       })
       .filter(function(w){ return w.hanzi || w.pinyin || w.translation; });
@@ -978,24 +1411,41 @@
   /* ===================== STUDY SCREEN ===================== */
   function renderStudy(){
     var screen = el("div","screen");
-    var lesson = findLesson(state.currentLessonId);
-    if(!lesson){ goHome(); return screen; }
+    var words = state.study.words;
+    if(!words || words.length === 0){ goHome(); return screen; }
 
     var header = el("header","topbar");
     var back = el("button","back-btn","←");
     back.addEventListener("click", goHome);
     header.appendChild(back);
-    var h1 = el("h1", null, escapeHtml(lesson.title) + '<span class="sub">Режим тренировки</span>');
+    var subLabel = state.study.sessionType === "review" ? "Повторение по расписанию" : "Режим тренировки";
+    var h1 = el("h1", null, escapeHtml(state.study.sessionLabel) + '<span class="sub">' + subLabel + '</span>');
     header.appendChild(h1);
 
-    var shuffleBtn = el("button","icon-round-btn" + (state.study.shuffled ? " active" : ""), "🔀");
-    shuffleBtn.title = "Перемешать";
-    shuffleBtn.addEventListener("click", function(){
-      resetStudy(true);
-      render();
-    });
-    header.appendChild(shuffleBtn);
+    if(state.study.mode === "cards"){
+      var shuffleBtn = el("button","icon-round-btn" + (state.study.shuffled ? " active" : ""), "🔀");
+      shuffleBtn.title = "Перемешать";
+      shuffleBtn.addEventListener("click", function(){
+        resetStudy(true);
+        render();
+      });
+      header.appendChild(shuffleBtn);
+    }
     screen.appendChild(header);
+
+    // переключатель режима тренировки
+    var modeSwitch = el("div","mode-switch");
+    var cardsBtn = el("button", state.study.mode === "cards" ? "active" : "", "🗂️ Карточки");
+    var quizBtn = el("button", state.study.mode === "quiz" ? "active" : "", "❓ Угадай перевод");
+    if(words.length < 2){
+      quizBtn.disabled = true;
+      quizBtn.title = "Нужно минимум 2 слова в уроке";
+    }
+    cardsBtn.addEventListener("click", function(){ switchStudyMode("cards"); });
+    quizBtn.addEventListener("click", function(){ switchStudyMode("quiz"); });
+    modeSwitch.appendChild(cardsBtn);
+    modeSwitch.appendChild(quizBtn);
+    screen.appendChild(modeSwitch);
 
     var total = state.study.order.length;
     var current = state.study.index + 1;
@@ -1012,11 +1462,22 @@
     screen.appendChild(studyHeader);
 
     var wordIdx = state.study.order[state.study.index];
-    var word = lesson.words[wordIdx];
+    var word = words[wordIdx];
+
+    if(state.study.mode === "quiz"){
+      screen.appendChild(renderQuizStage(word));
+    } else {
+      screen.appendChild(renderCardStage(word));
+    }
+
+    return screen;
+  }
+
+  function renderCardStage(word){
+    var wrap = el("div", null);
 
     var stage = el("div","card-stage");
     var card = el("div","flashcard" + (state.study.flipped ? " flipped" : ""));
-    card.id = "flashcard";
 
     var front = el("div","card-face front");
     front.innerHTML = '<div class="hanzi-text"></div><div class="tap-hint">👆 Нажми, чтобы перевернуть</div>';
@@ -1034,32 +1495,27 @@
       render();
     });
     stage.appendChild(card);
-    screen.appendChild(stage);
+    wrap.appendChild(stage);
 
+    var srsControls = el("div","srs-controls");
+    var repeatBtn = el("button","srs-btn repeat","❌ Повторить");
+    repeatBtn.addEventListener("click", function(){ handleMarkCard(word, false); });
+    var knowBtn = el("button","srs-btn know","✅ Знаю");
+    knowBtn.addEventListener("click", function(){ handleMarkCard(word, true); });
+    srsControls.appendChild(repeatBtn);
+    srsControls.appendChild(knowBtn);
+    wrap.appendChild(srsControls);
+
+    var total = state.study.order.length;
     var controls = el("div","study-controls");
     var prevBtn = el("button","nav-btn","◀ Пред.");
     prevBtn.disabled = state.study.index === 0;
-    prevBtn.addEventListener("click", function(){
-      if(state.study.index > 0){
-        state.study.index--;
-        state.study.flipped = false;
-        render();
-      }
-    });
+    prevBtn.addEventListener("click", goToPrevCard);
     var nextBtn = el("button","nav-btn", state.study.index === total-1 ? "Завершить ✓" : "Следующее ▶");
-    nextBtn.addEventListener("click", function(){
-      if(state.study.index < total - 1){
-        state.study.index++;
-        state.study.flipped = false;
-        render();
-      } else {
-        state.route = "done";
-        render();
-      }
-    });
+    nextBtn.addEventListener("click", goToNextCard);
     controls.appendChild(prevBtn);
     controls.appendChild(nextBtn);
-    screen.appendChild(controls);
+    wrap.appendChild(controls);
 
     var footer = el("div","study-footer");
     var restartBtn = el("button","link-btn","↺ Начать заново");
@@ -1068,35 +1524,103 @@
       render();
     });
     footer.appendChild(restartBtn);
-    screen.appendChild(footer);
+    wrap.appendChild(footer);
 
-    return screen;
+    return wrap;
+  }
+
+  function renderQuizStage(word){
+    var wrap = el("div", null);
+
+    var quizCard = el("div","quiz-card");
+    quizCard.innerHTML = '<div class="quiz-hanzi"></div>';
+    quizCard.querySelector(".quiz-hanzi").textContent = word.hanzi;
+    wrap.appendChild(quizCard);
+
+    var optionsWrap = el("div","quiz-options");
+    var options = state.study.quizOptions;
+    options.forEach(function(opt, i){
+      var btn = el("button","quiz-option");
+      btn.textContent = opt.text || "—";
+      if(state.study.quizAnswered){
+        btn.classList.add("disabled");
+        if(opt.isCorrect){
+          btn.classList.add("correct");
+        } else if(i === state.study.quizSelectedIndex){
+          btn.classList.add("incorrect");
+        }
+      }
+      btn.addEventListener("click", function(){
+        handleQuizAnswer(word, i);
+      });
+      optionsWrap.appendChild(btn);
+    });
+    wrap.appendChild(optionsWrap);
+
+    var feedback = el("div","quiz-feedback");
+    if(state.study.quizAnswered){
+      var chosen = options[state.study.quizSelectedIndex];
+      if(chosen && chosen.isCorrect){
+        feedback.textContent = "✅ Верно!";
+        feedback.classList.add("correct");
+      } else {
+        feedback.textContent = "❌ Неверно. Правильный ответ: " + (word.translation || "—");
+        feedback.classList.add("incorrect");
+      }
+    }
+    wrap.appendChild(feedback);
+
+    var total = state.study.order.length;
+    var controls = el("div","study-controls");
+    var nextBtn = el("button","nav-btn", state.study.index === total-1 ? "Завершить ✓" : "Далее ▶");
+    nextBtn.style.maxWidth = "220px";
+    nextBtn.disabled = !state.study.quizAnswered;
+    nextBtn.addEventListener("click", goToNextCard);
+    controls.appendChild(nextBtn);
+    wrap.appendChild(controls);
+
+    return wrap;
   }
 
   /* ===================== DONE SCREEN ===================== */
   function renderDone(){
     var screen = el("div","screen");
-    var lesson = findLesson(state.currentLessonId);
+    var label = state.study.sessionLabel || "";
+    var isReview = state.study.sessionType === "review";
 
     var header = el("header","topbar");
     var back = el("button","back-btn","←");
     back.addEventListener("click", goHome);
     header.appendChild(back);
-    header.appendChild(el("h1", null, lesson ? escapeHtml(lesson.title) : ""));
+    header.appendChild(el("h1", null, escapeHtml(label)));
     screen.appendChild(header);
 
     var congrats = el("div","congrats");
+    var bodyText = isReview
+      ? "Ты повторил все запланированные на сегодня слова. Отличная работа! 🏮"
+      : "Ты просмотрел все карточки урока «" + escapeHtml(label) + "». Отличная работа! 🏮";
+
+    var quizSummaryHtml = "";
+    if(state.study.mode === "quiz" && state.study.quizTotalAnswered > 0){
+      quizSummaryHtml = '<p>Правильных ответов: <b>' + state.study.quizCorrectCount + ' из ' + state.study.quizTotalAnswered + '</b></p>';
+    }
+
     congrats.innerHTML =
       '<div class="big-emoji">🎉</div>' +
-      '<h2>Урок пройден!</h2>' +
-      '<p>Ты просмотрел все карточки урока «' + (lesson ? escapeHtml(lesson.title) : "") + '». Отличная работа! 🏮</p>';
+      '<h2>' + (isReview ? "Повторение завершено!" : "Урок пройден!") + '</h2>' +
+      '<p>' + bodyText + '</p>' +
+      quizSummaryHtml;
 
     var row = el("div","btn-row");
     var repeatBtn = el("button","btn-primary","🔁 Повторить");
     repeatBtn.addEventListener("click", function(){
-      state.route = "study";
-      resetStudy(false);
-      render();
+      if(isReview){
+        openReviewSession();
+      } else {
+        state.route = "study";
+        resetStudy(false);
+        render();
+      }
     });
     var homeBtn = el("button","btn-secondary","🏠 К урокам");
     homeBtn.addEventListener("click", goHome);
@@ -1106,6 +1630,73 @@
     screen.appendChild(congrats);
 
     return screen;
+  }
+
+  /* ===================== STATS SCREEN ===================== */
+  function renderStats(){
+    var screen = el("div","screen");
+
+    var header = el("header","topbar");
+    var back = el("button","back-btn","←");
+    back.addEventListener("click", goHome);
+    header.appendChild(back);
+    header.appendChild(el("h1", null, "📊 Статистика"));
+    screen.appendChild(header);
+
+    var streak = computeStreak();
+    var learned = countLearnedWords();
+
+    var tiles = el("div","stats-tiles");
+    tiles.innerHTML =
+      '<div class="stat-tile"><div class="value">🔥 ' + streak + '</div><div class="label">' + pluralDays(streak) + ' подряд</div></div>' +
+      '<div class="stat-tile"><div class="value">🎓 ' + learned + '</div><div class="label">' + pluralWords(learned) + ' выучено</div></div>';
+    screen.appendChild(tiles);
+
+    var stats = loadStats();
+    var map = {};
+    stats.forEach(function(s){ map[s.date] = s.count; });
+    var days = last30Days();
+    var max = 1;
+    days.forEach(function(d){ if((map[d]||0) > max) max = map[d]; });
+
+    var chartCard = el("div","chart-card");
+    chartCard.appendChild(el("h3", null, "Карточек за последние 30 дней"));
+    var scroll = el("div","chart-scroll");
+    var bars = el("div","chart-bars");
+    days.forEach(function(d){
+      var count = map[d] || 0;
+      var wrap = el("div","chart-bar-wrap");
+      var bar = el("div","chart-bar");
+      var heightPx = Math.round((count / max) * 110);
+      bar.style.height = (count > 0 ? Math.max(heightPx, 4) : 2) + "px";
+      bar.title = d + ": " + count;
+      wrap.appendChild(bar);
+      wrap.appendChild(el("div","chart-bar-label", dayLabel(d)));
+      bars.appendChild(wrap);
+    });
+    scroll.appendChild(bars);
+    chartCard.appendChild(scroll);
+    screen.appendChild(chartCard);
+
+    // прокручиваем график к сегодняшнему дню (самому свежему, справа), иначе он скрыт за пределами видимой области
+    requestAnimationFrame(function(){
+      scroll.scrollLeft = scroll.scrollWidth;
+    });
+
+    if(stats.length === 0){
+      var empty = el("div","empty-state");
+      empty.innerHTML = '<span class="emoji">📈</span><div>Пока нет данных.<br>Пройди хотя бы одну тренировку, чтобы увидеть статистику!</div>';
+      screen.appendChild(empty);
+    }
+
+    return screen;
+  }
+
+  function pluralDays(n){
+    var mod10 = n % 10, mod100 = n % 100;
+    if(mod10 === 1 && mod100 !== 11) return "день";
+    if(mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return "дня";
+    return "дней";
   }
 
   /* ===================== INIT ===================== */
