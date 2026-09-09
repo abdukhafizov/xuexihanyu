@@ -13,6 +13,6 @@
 // секретностью этого ключа. Секретный service_role-ключ сюда вставлять
 // никогда не нужно — в этом приложении он не используется.
 window.APP_CONFIG = {
-  SUPABASE_URL: "",
-  SUPABASE_ANON_KEY: ""
+  SUPABASE_URL: "https://cespqgwoydtdnltfjsty.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_R-0XJOgxJe1ELaBouXJ_lg_X_NBlR43"
 };
