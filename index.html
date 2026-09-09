@@ -326,6 +326,39 @@
   .modal-row > *{flex:1;}
   .btn-danger{background:linear-gradient(135deg,var(--wine),var(--deep)); color:var(--cream); border:none; border-radius:14px; padding:14px 18px; font-size:15px; font-weight:600; cursor:pointer;}
 
+  /* ---------- auth screens (вход/регистрация/восстановление) ---------- */
+  .auth-screen-wrap{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; background:var(--bg);}
+  .auth-card{width:100%; max-width:400px; display:flex; flex-direction:column; gap:20px; animation:zhFade .35s ease;}
+  .auth-logo{align-self:center; width:84px; height:84px; border-radius:20px; display:flex; align-items:center; justify-content:center; box-shadow:0 16px 34px -14px rgba(107,22,34,.55); overflow:hidden;}
+  .auth-logo span{position:relative; font-family:'Ma Shan Zheng',serif; font-size:40px; color:var(--gold);}
+  .auth-title{text-align:center;}
+  .auth-title h1{font-family:'Noto Serif SC',serif; font-size:24px; font-weight:600; margin:0 0 6px;}
+  .auth-title p{margin:0; font-size:13.5px; color:var(--soft); line-height:1.5;}
+  .auth-tabs{display:flex; padding:4px; gap:4px; border:1px solid var(--line); border-radius:14px; background:var(--surface);}
+  .auth-tabs button{flex:1; min-height:44px; border:none; border-radius:11px; font-size:14px; font-weight:500; cursor:pointer; background:transparent; color:var(--soft);}
+  .auth-tabs button.active{background:var(--wine); color:var(--cream);}
+  .auth-form{display:flex; flex-direction:column; gap:12px;}
+  .auth-error{background:rgba(140,34,48,.1); border:1px solid var(--wine); color:var(--wine); border-radius:12px; padding:12px 14px; font-size:13.5px; line-height:1.5;}
+  :root.dark .auth-error{background:rgba(158,43,56,.18);}
+  .auth-notice{background:rgba(110,138,78,.12); border:1px solid var(--tone-2); color:var(--ink); border-radius:12px; padding:12px 14px; font-size:13.5px; line-height:1.5;}
+  .auth-divider{display:flex; align-items:center; gap:10px; color:var(--soft); font-size:12px;}
+  .auth-divider .line{flex:1; height:1px; background:var(--line);}
+  .google-btn{width:100%; min-height:52px; padding:14px; border:1px solid var(--line); border-radius:14px; background:var(--surface); color:var(--ink); font-size:14.5px; font-weight:500; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;}
+  .google-btn:hover{border-color:var(--gold);}
+  .auth-link-row{text-align:center; font-size:13px; color:var(--soft);}
+  .auth-link-row button{border:none; background:none; color:var(--wine); font-size:13px; cursor:pointer; text-decoration:underline; padding:0;}
+  .auth-link-row button:hover{color:var(--gold);}
+
+  /* ---------- loading ---------- */
+  .loading-wrap{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; background:var(--bg);}
+  .loading-mark{width:64px; height:64px; border-radius:16px; display:flex; align-items:center; justify-content:center; animation:zhBounce 1s ease infinite alternate; box-shadow:0 14px 28px -12px rgba(107,22,34,.5);}
+  .loading-mark span{position:relative; font-family:'Ma Shan Zheng',serif; font-size:30px; color:var(--gold);}
+  .loading-wrap p{color:var(--soft); font-size:13.5px; margin:0;}
+
+  /* ---------- офлайн-баннер и блок аккаунта в настройках ---------- */
+  .offline-banner{width:100%; padding:10px 16px; border-radius:14px; background:var(--sunk); color:var(--wine); font-size:13px; text-align:center; border:1px solid var(--line);}
+  .account-email{margin:10px 0 16px; font-size:14px; color:var(--soft); line-height:1.5; word-break:break-all;}
+
   @media (max-width:640px){
     .hero{padding:20px;}
     .lesson-grid{grid-template-columns:1fr;}
@@ -335,6 +368,10 @@
 <body>
 <div id="app"></div>
 <div class="toast" id="toast"></div>
+
+<!-- Supabase (аккаунты + облачное хранение) и конфиг с ключами проекта -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
 
 <!-- Библиотека транслитерации иероглифов в пиньинь -->
 <script src="https://cdn.jsdelivr.net/npm/pinyin-pro/dist/index.js"></script>
@@ -401,6 +438,18 @@
     return "";
   }
 
+  /* ---------- автоперевод (бесплатный неофициальный эндпоинт Google Translate) ---------- */
+  async function autoTranslate(hanzi){
+    try{
+      var url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh-CN&tl=ru&dt=t&q=" + encodeURIComponent(hanzi);
+      var res = await fetch(url);
+      if(!res.ok) return "";
+      var data = await res.json();
+      if(!Array.isArray(data) || !Array.isArray(data[0])) return "";
+      return data[0].map(function(seg){ return seg && seg[0] ? seg[0] : ""; }).join("").trim();
+    }catch(e){ console.warn("Translate failed", e); return ""; }
+  }
+
   /* ---------- тона пиньиня (для цветовой раскраски слогов) ---------- */
   var TONE = { 1:"var(--tone-1)", 2:"var(--tone-2)", 3:"var(--tone-3)", 4:"var(--tone-4)", 5:"var(--tone-5)" };
   var TONE_MAP = { "ā":1,"ē":1,"ī":1,"ō":1,"ū":1,"ǖ":1, "á":2,"é":2,"í":2,"ó":2,"ú":2,"ǘ":2, "ǎ":3,"ě":3,"ǐ":3,"ǒ":3,"ǔ":3,"ǚ":3, "à":4,"è":4,"ì":4,"ò":4,"ù":4,"ǜ":4 };
@@ -449,13 +498,15 @@
     }
     s.nextReviewDate = formatDate(addDays(new Date(), s.interval));
     s.lastReviewDate = todayStr();
+    s.status = correct ? "know" : "repeat";
   }
   function getDueWords(){
     var due = [];
     state.lessons.forEach(function(lesson){
       lesson.words.forEach(function(w){ if(isDue(w)) due.push(w); });
     });
-    persist();
+    // в режиме аккаунта прогресс живёт в Supabase — локальный снапшот сохранять не нужно
+    if(state.auth.mode !== "account") persist();
     return due;
   }
   function countLearnedWords(){
@@ -469,16 +520,28 @@
   }
 
   /* ---------- статистика по дням ---------- */
+  // В режиме аккаунта источник правды — Supabase (daily_stats), но чтобы не переписывать
+  // computeStreak/todayCount/график статистики, они по-прежнему просто читают loadStats() —
+  // здесь она отдаёт локальный кэш, заранее загруженный из Supabase при входе.
   function loadStats(){
+    if(state.auth.mode === "account") return state.statsCache || [];
     var s = loadJSON(STATS_KEY, []);
     return Array.isArray(s) ? s : [];
   }
   function saveStats(stats){ saveJSON(STATS_KEY, stats); }
   function logCardReviewed(){
-    var stats = loadStats();
     var today = todayStr();
+    if(state.auth.mode === "account"){
+      // оптимистично обновляем кэш сразу, запись в Supabase уходит в фоне
+      var cached = null;
+      for(var i=0;i<state.statsCache.length;i++){ if(state.statsCache[i].date === today){ cached = state.statsCache[i]; break; } }
+      if(cached){ cached.count += 1; } else { state.statsCache.push({ date: today, count: 1 }); }
+      state.dataAdapter.logCardReviewed().catch(function(e){ console.warn("Не удалось записать статистику", e); });
+      return;
+    }
+    var stats = loadStats();
     var entry = null;
-    for(var i=0;i<stats.length;i++){ if(stats[i].date === today){ entry = stats[i]; break; } }
+    for(var j=0;j<stats.length;j++){ if(stats[j].date === today){ entry = stats[j]; break; } }
     if(entry){ entry.count += 1; } else { stats.push({ date: today, count: 1 }); }
     saveStats(stats);
   }
@@ -556,6 +619,13 @@
     return '<svg viewBox="0 0 20 20" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICON_PATHS[name] || "") + '</svg>';
   }
 
+  var GOOGLE_ICON_SVG = '<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+    '<path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.84 2.09-1.8 2.73v2.27h2.91c1.7-1.57 2.69-3.88 2.69-6.64z"/>' +
+    '<path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.17l-2.91-2.27c-.81.54-1.84.86-3.05.86-2.34 0-4.33-1.58-5.04-3.71H.96v2.34C2.44 15.98 5.48 18 9 18z"/>' +
+    '<path fill="#FBBC05" d="M3.96 10.71c-.18-.54-.29-1.11-.29-1.71s.11-1.17.29-1.71V4.96H.96A8.996 8.996 0 0 0 0 9c0 1.45.35 2.83.96 4.04l3-2.33z"/>' +
+    '<path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.96l3 2.33C4.67 5.16 6.66 3.58 9 3.58z"/>' +
+    '</svg>';
+
   var SEED = [
     { id:"l1", title:"Урок 1 · Приветствия", words:[
       { id: uid(), hanzi:"你好", pinyin:"nǐ hǎo", translation:"привет" },
@@ -573,16 +643,22 @@
   ];
 
   /* ===================== APP STATE ===================== */
-  var initialLessons = loadLessons();
   var state = {
-    route: initialLessons.length ? "home" : "onboarding",
+    route: "loading",
     wide: window.innerWidth >= 900,
-    lessons: initialLessons,
+    lessons: [],
     settings: loadSettings(),
+    auth: { configured: false, mode: "guest", user: null },
+    authTab: "login", authBusy: false, authError: null, authNotice: null,
+    showMigrate: false, migrateCount: 0, migrateData: null,
+    online: navigator.onLine,
+    statsCache: [],
+    dataAdapter: null,
     currentLessonId: null,
     editingLessonId: null,
     editingTitle: "",
     editingWords: [],
+    bulkOpen: false,
     study: {
       words: [], order: [], index: 0, flipped: false, shuffled: false,
       mode: "cards", picked: null,
@@ -603,6 +679,301 @@
     return null;
   }
   function persist(){ saveLessons(state.lessons); }
+
+  /* ===================== SUPABASE (аккаунты + облачное хранение) ===================== */
+  var sb = null; // клиент supabase-js, создаётся в boot(), если проект настроен
+
+  function isSupabaseConfigured(){
+    var cfg = window.APP_CONFIG || {};
+    return !!(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY && cfg.SUPABASE_URL.indexOf("http") === 0);
+  }
+  function currentUserId(){ return state.auth.user ? state.auth.user.id : null; }
+
+  function friendlyAuthError(err){
+    var msg = (err && err.message) || "";
+    if(!navigator.onLine || /network|fetch|failed to fetch/i.test(msg)) return "Нет соединения с сервером. Проверь интернет и попробуй снова.";
+    if(/invalid login credentials/i.test(msg)) return "Неверный email или пароль.";
+    if(/already registered|already exists|user already/i.test(msg)) return "Этот email уже зарегистрирован. Попробуй войти.";
+    if(/password.*(least|short|6 characters)/i.test(msg)) return "Пароль слишком короткий (минимум 6 символов).";
+    if(/(invalid|unable to validate).*email/i.test(msg)) return "Некорректный email.";
+    if(/rate limit/i.test(msg)) return "Слишком много попыток. Подожди немного и попробуй снова.";
+    return msg || "Что-то пошло не так. Попробуй ещё раз.";
+  }
+  function friendlyDataError(err){
+    if(!navigator.onLine) return "Нет соединения — изменения не сохранены.";
+    var msg = (err && err.message) || "";
+    return "Не удалось сохранить: " + (msg || "неизвестная ошибка");
+  }
+
+  // Обёртка над Postgres-таблицами lessons/words/word_progress/daily_stats (см. SETUP.md).
+  // Возвращает/принимает ровно ту же форму данных, что и localStorage-версия — вся
+  // остальная логика приложения (SM-2, статистика, квиз) не знает, откуда пришли данные.
+  function createSupabaseAdapter(){
+    return {
+      getLessons: async function(){
+        var uid_ = currentUserId();
+        var lr = await sb.from("lessons").select("id,title,created_at").eq("user_id", uid_).order("created_at", { ascending:true });
+        if(lr.error) throw lr.error;
+        var lessonIds = lr.data.map(function(l){ return l.id; });
+        var wordsRows = [];
+        if(lessonIds.length){
+          var wr = await sb.from("words").select("id,lesson_id,hanzi,pinyin,translation,created_at").in("lesson_id", lessonIds).order("created_at", { ascending:true });
+          if(wr.error) throw wr.error;
+          wordsRows = wr.data;
+        }
+        var wordIds = wordsRows.map(function(w){ return w.id; });
+        var progressRows = [];
+        if(wordIds.length){
+          var pr = await sb.from("word_progress").select("word_id,interval,ease_factor,repetitions,next_review_date,status").eq("user_id", uid_).in("word_id", wordIds);
+          if(pr.error) throw pr.error;
+          progressRows = pr.data;
+        }
+        var progressByWord = {};
+        progressRows.forEach(function(p){ progressByWord[p.word_id] = p; });
+        var wordsByLesson = {};
+        wordsRows.forEach(function(w){
+          var p = progressByWord[w.id];
+          var word = {
+            id: w.id, hanzi: w.hanzi, pinyin: w.pinyin || "", translation: w.translation || "",
+            srs: p ? { interval:p.interval, easeFactor:Number(p.ease_factor), repetitions:p.repetitions, nextReviewDate:p.next_review_date, status:p.status } : undefined
+          };
+          (wordsByLesson[w.lesson_id] = wordsByLesson[w.lesson_id] || []).push(word);
+        });
+        return lr.data.map(function(l){ return { id:l.id, title:l.title, words: wordsByLesson[l.id] || [] }; });
+      },
+
+      createLesson: async function(payload){
+        var uid_ = currentUserId();
+        var lres = await sb.from("lessons").insert({ user_id: uid_, title: payload.title }).select().single();
+        if(lres.error) throw lres.error;
+        var words = payload.words || [];
+        if(!words.length) return;
+        var rows = words.map(function(w){ return { lesson_id: lres.data.id, hanzi:w.hanzi, pinyin:w.pinyin||"", translation:w.translation||"" }; });
+        var wres = await sb.from("words").insert(rows).select();
+        if(wres.error) throw wres.error;
+        var progressRows = [];
+        for(var i=0;i<words.length;i++){
+          if(words[i].srs && wres.data[i]){
+            progressRows.push({
+              word_id: wres.data[i].id, user_id: uid_,
+              interval: words[i].srs.interval, ease_factor: words[i].srs.easeFactor,
+              repetitions: words[i].srs.repetitions, next_review_date: words[i].srs.nextReviewDate,
+              status: words[i].srs.status || null
+            });
+          }
+        }
+        if(progressRows.length){
+          var pres = await sb.from("word_progress").insert(progressRows);
+          if(pres.error) throw pres.error;
+        }
+      },
+
+      updateLesson: async function(id, payload){
+        var tres = await sb.from("lessons").update({ title: payload.title }).eq("id", id).eq("user_id", currentUserId());
+        if(tres.error) throw tres.error;
+
+        var eres = await sb.from("words").select("id").eq("lesson_id", id);
+        if(eres.error) throw eres.error;
+        var existingIds = eres.data.map(function(w){ return w.id; });
+        var incoming = payload.words || [];
+        var incomingExistingIds = incoming.map(function(w){ return w.id; }).filter(function(wid){ return existingIds.indexOf(wid) >= 0; });
+        var toDelete = existingIds.filter(function(eid){ return incomingExistingIds.indexOf(eid) < 0; });
+        if(toDelete.length){
+          var dres = await sb.from("words").delete().in("id", toDelete);
+          if(dres.error) throw dres.error;
+        }
+        for(var i=0;i<incoming.length;i++){
+          var w = incoming[i];
+          if(existingIds.indexOf(w.id) >= 0){
+            var ures = await sb.from("words").update({ hanzi:w.hanzi, pinyin:w.pinyin||"", translation:w.translation||"" }).eq("id", w.id);
+            if(ures.error) throw ures.error;
+          } else {
+            var ires = await sb.from("words").insert({ lesson_id:id, hanzi:w.hanzi, pinyin:w.pinyin||"", translation:w.translation||"" });
+            if(ires.error) throw ires.error;
+          }
+        }
+      },
+
+      deleteLesson: async function(id){
+        var res = await sb.from("lessons").delete().eq("id", id).eq("user_id", currentUserId());
+        if(res.error) throw res.error;
+      },
+
+      saveWordProgress: async function(wordId, srs){
+        var res = await sb.from("word_progress").upsert({
+          word_id: wordId, user_id: currentUserId(),
+          interval: srs.interval, ease_factor: srs.easeFactor, repetitions: srs.repetitions,
+          next_review_date: srs.nextReviewDate, status: srs.status || null,
+          updated_at: new Date().toISOString()
+        }, { onConflict: "word_id,user_id" });
+        if(res.error) throw res.error;
+      },
+
+      logCardReviewed: async function(){
+        var uid_ = currentUserId();
+        var today = todayStr();
+        var existing = await sb.from("daily_stats").select("id,cards_reviewed_count").eq("user_id", uid_).eq("date", today).maybeSingle();
+        if(existing.error) throw existing.error;
+        if(existing.data){
+          var ures = await sb.from("daily_stats").update({ cards_reviewed_count: existing.data.cards_reviewed_count + 1 }).eq("id", existing.data.id);
+          if(ures.error) throw ures.error;
+        } else {
+          var ires = await sb.from("daily_stats").insert({ user_id: uid_, date: today, cards_reviewed_count: 1 });
+          if(ires.error) throw ires.error;
+        }
+      },
+
+      getStats: async function(){
+        var res = await sb.from("daily_stats").select("date,cards_reviewed_count").eq("user_id", currentUserId());
+        if(res.error) throw res.error;
+        return (res.data || []).map(function(r){ return { date:r.date, count:r.cards_reviewed_count }; });
+      }
+    };
+  }
+
+  async function loadAccountData(){
+    state.lessons = await state.dataAdapter.getLessons();
+    state.statsCache = await state.dataAdapter.getStats();
+  }
+  function checkMigration(){
+    try{
+      var local = loadLessons();
+      if(local.length && state.lessons.length === 0){
+        state.showMigrate = true;
+        state.migrateCount = local.length;
+        state.migrateData = local;
+      }
+    }catch(e){}
+  }
+  async function afterAuthSuccess(){
+    var res = await sb.auth.getSession();
+    state.auth.user = res.data.session.user;
+    state.auth.mode = "account";
+    state.dataAdapter = createSupabaseAdapter();
+    state.authBusy = false; state.authError = null; state.authNotice = null;
+    await loadAccountData();
+    checkMigration();
+    state.route = state.lessons.length ? "home" : "onboarding";
+    render();
+  }
+  async function doLogin(email, password){
+    state.authBusy = true; state.authError = null; render();
+    try{
+      var res = await sb.auth.signInWithPassword({ email: email, password: password });
+      if(res.error) throw res.error;
+      await afterAuthSuccess();
+    }catch(e){
+      state.authBusy = false; state.authError = friendlyAuthError(e); render();
+    }
+  }
+  async function doSignup(email, password){
+    state.authBusy = true; state.authError = null; render();
+    try{
+      var res = await sb.auth.signUp({ email: email, password: password });
+      if(res.error) throw res.error;
+      if(res.data.session){
+        await afterAuthSuccess();
+      } else {
+        state.authBusy = false;
+        state.authNotice = "Мы отправили письмо для подтверждения на " + email + ". Перейди по ссылке из письма, потом войди.";
+        state.authTab = "login";
+        render();
+      }
+    }catch(e){
+      state.authBusy = false; state.authError = friendlyAuthError(e); render();
+    }
+  }
+  async function doGoogleLogin(){
+    state.authError = null;
+    try{
+      var res = await sb.auth.signInWithOAuth({ provider: "google" });
+      if(res.error) throw res.error;
+      // дальше произойдёт редирект на Google и обратно — сессию подхватит boot() при новой загрузке страницы
+    }catch(e){
+      state.authError = friendlyAuthError(e); render();
+    }
+  }
+  async function doForgotPassword(email){
+    state.authBusy = true; state.authError = null; render();
+    try{
+      var res = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+      if(res.error) throw res.error;
+      state.authBusy = false;
+      state.authNotice = "Если такой email зарегистрирован, мы отправили на него ссылку для сброса пароля.";
+      render();
+    }catch(e){
+      state.authBusy = false; state.authError = friendlyAuthError(e); render();
+    }
+  }
+  async function doSignOut(){
+    try{ if(sb) await sb.auth.signOut(); }catch(e){}
+    state.auth.mode = "guest"; state.auth.user = null;
+    state.dataAdapter = null;
+    state.lessons = []; state.statsCache = [];
+    state.currentLessonId = null;
+    state.route = "auth-gate";
+    render();
+  }
+  function continueAsGuest(){
+    state.auth.mode = "guest";
+    state.dataAdapter = null;
+    state.lessons = loadLessons();
+    state.route = state.lessons.length ? "home" : "onboarding";
+    render();
+  }
+
+  async function boot(){
+    window.addEventListener("resize", function(){
+      var wide = window.innerWidth >= 900;
+      if(wide !== state.wide){ state.wide = wide; render(); }
+    });
+    window.addEventListener("online", function(){ state.online = true; render(); });
+    window.addEventListener("offline", function(){ state.online = false; render(); });
+
+    if(!isSupabaseConfigured()){
+      state.auth.configured = false;
+      state.lessons = loadLessons();
+      state.route = state.lessons.length ? "home" : "onboarding";
+      render();
+      return;
+    }
+
+    state.auth.configured = true;
+    try{
+      sb = window.supabase.createClient(window.APP_CONFIG.SUPABASE_URL, window.APP_CONFIG.SUPABASE_ANON_KEY);
+    }catch(e){
+      console.error("Supabase init failed", e);
+      state.auth.configured = false;
+      state.lessons = loadLessons();
+      state.route = state.lessons.length ? "home" : "onboarding";
+      render();
+      return;
+    }
+
+    sb.auth.onAuthStateChange(function(event){
+      if(event === "PASSWORD_RECOVERY"){ state.route = "reset-password"; render(); }
+    });
+
+    try{
+      var res = await sb.auth.getSession();
+      var session = res.data.session;
+      if(session){
+        state.auth.user = session.user;
+        state.auth.mode = "account";
+        state.dataAdapter = createSupabaseAdapter();
+        await loadAccountData();
+        checkMigration();
+        state.route = state.lessons.length ? "home" : "onboarding";
+      } else {
+        state.route = "auth-gate";
+      }
+    }catch(e){
+      console.error("Supabase session check failed", e);
+      state.route = "auth-gate";
+      state.authError = friendlyAuthError(e);
+    }
+    render();
+  }
 
   /* ===================== NAVIGATION ===================== */
   function goHome(){ state.route = "home"; render(); }
@@ -665,10 +1036,19 @@
     resetStudy(true);
     render();
   }
-  function viewExamples(){
-    var seeded = SEED.map(function(l){ return { id: uid(), title: l.title, words: l.words.map(function(w){ return Object.assign({}, w, { id: uid() }); }) }; });
-    state.lessons = seeded;
-    persist();
+  async function viewExamples(){
+    if(state.auth.mode === "account"){
+      try{
+        for(var i=0;i<SEED.length;i++){
+          await state.dataAdapter.createLesson({ title: SEED[i].title, words: SEED[i].words });
+        }
+        state.lessons = await state.dataAdapter.getLessons();
+      }catch(e){ showToast(friendlyDataError(e)); return; }
+    } else {
+      var seeded = SEED.map(function(l){ return { id: uid(), title: l.title, words: l.words.map(function(w){ return Object.assign({}, w, { id: uid() }); }) }; });
+      state.lessons = seeded;
+      persist();
+    }
     goHome();
   }
 
@@ -720,19 +1100,29 @@
     render();
   }
 
-  function handleMarkCard(word, correct){
+  async function handleMarkCard(word, correct){
     if(state.settings.srsEnabled) srsAnswer(word, correct);
-    persist();
+    if(state.auth.mode === "account"){
+      try{ await state.dataAdapter.saveWordProgress(word.id, word.srs); }
+      catch(e){ showToast(friendlyDataError(e)); }
+    } else {
+      persist();
+    }
     goToNextCard();
   }
-  function handleQuizAnswer(word, text, correct){
+  async function handleQuizAnswer(word, text, correct){
     if(state.study.picked) return;
     state.study.picked = text;
     state.study.quizTotalAnswered++;
     if(correct) state.study.quizCorrectCount++;
     logQuizAnswer(correct);
     if(state.settings.srsEnabled) srsAnswer(word, correct);
-    persist();
+    if(state.auth.mode === "account"){
+      try{ await state.dataAdapter.saveWordProgress(word.id, word.srs); }
+      catch(e){ showToast(friendlyDataError(e)); }
+    } else {
+      persist();
+    }
     render();
   }
   function goToNextCard(){
@@ -790,8 +1180,14 @@
     var app = document.getElementById("app");
     app.innerHTML = "";
 
+    if(state.route === "loading"){ app.appendChild(renderLoadingScreen()); return; }
+    if(state.route === "auth-gate"){ app.appendChild(renderAuthGate()); return; }
+    if(state.route === "forgot-password"){ app.appendChild(renderForgotPassword()); return; }
+    if(state.route === "reset-password"){ app.appendChild(renderResetPassword()); return; }
+
     if(state.route === "onboarding"){
       app.appendChild(renderShell(renderOnboarding(), false));
+      if(state.showMigrate){ app.appendChild(renderMigrateModal()); }
       return;
     }
 
@@ -807,6 +1203,7 @@
     app.appendChild(renderShell(content, true));
 
     if(state.confirmDelete){ app.appendChild(renderDeleteModal()); }
+    if(state.showMigrate){ app.appendChild(renderMigrateModal()); }
   }
 
   function navItems(){
@@ -828,6 +1225,9 @@
     }
 
     var main = el("main","main " + (state.wide ? "wide" : "narrow"));
+    if(!state.online && state.auth.mode === "account"){
+      main.appendChild(el("div","offline-banner","Нет соединения — изменения не сохраняются"));
+    }
     var col = el("div","content-col");
     col.appendChild(content);
     main.appendChild(col);
@@ -1017,9 +1417,22 @@
     var cancelBtn = el("button","btn-outline","Отмена");
     var delBtn = el("button","btn-danger","Удалить");
     cancelBtn.addEventListener("click", function(){ state.confirmDelete = null; render(); });
-    delBtn.addEventListener("click", function(){
-      state.lessons = state.lessons.filter(function(l){ return l.id !== state.confirmDelete; });
-      persist();
+    delBtn.addEventListener("click", async function(){
+      var idToDelete = state.confirmDelete;
+      if(state.auth.mode === "account"){
+        try{
+          await state.dataAdapter.deleteLesson(idToDelete);
+          state.lessons = await state.dataAdapter.getLessons();
+        }catch(e){
+          state.confirmDelete = null;
+          showToast(friendlyDataError(e));
+          render();
+          return;
+        }
+      } else {
+        state.lessons = state.lessons.filter(function(l){ return l.id !== idToDelete; });
+        persist();
+      }
       state.confirmDelete = null;
       if(state.lessons.length === 0) state.route = "onboarding";
       render();
@@ -1069,6 +1482,21 @@
       showToast(changed ? "Пиньинь заполнен: " + changed : "Заполнять нечего");
     });
     draftHeader.appendChild(fillBtn);
+    var fillTransBtn = el("button","fill-pinyin-btn","Перевод автоматом");
+    fillTransBtn.addEventListener("click", async function(){
+      var targets = state.editingWords.filter(function(w){ return !w.translation && w.hanzi; });
+      if(!targets.length){ showToast("Заполнять нечего"); return; }
+      fillTransBtn.disabled = true; fillTransBtn.textContent = "Переводим…";
+      var changed = 0;
+      await Promise.all(targets.map(async function(w){
+        var t = await autoTranslate(w.hanzi);
+        if(t){ w.translation = t; changed++; }
+      }));
+      fillTransBtn.disabled = false; fillTransBtn.textContent = "Перевод автоматом";
+      renderWordRows(rowsContainer);
+      showToast(changed ? "Перевод заполнен: " + changed : "Не удалось перевести");
+    });
+    draftHeader.appendChild(fillTransBtn);
     s.appendChild(draftHeader);
 
     var emptyHint = el("div","empty-hint","Слов пока нет — добавь первое слово ниже или вставь список целиком.");
@@ -1099,13 +1527,16 @@
     bulkToggle.innerHTML = '<span>Вставить список слов сразу</span><span class="chevron">' + (state.bulkOpen ? "Свернуть" : "Развернуть") + '</span>';
     var bulkBody = el("div","bulk-body");
     bulkBody.style.display = state.bulkOpen ? "flex" : "none";
-    bulkBody.innerHTML = '<div class="hint">Одно слово в строке. Через запятую или табуляцию: иероглиф, пиньинь, перевод. Пиньинь можно не писать — подставится сам.</div>';
+    bulkBody.innerHTML = '<div class="hint">Одно слово в строке. Через запятую или табуляцию: иероглиф, пиньинь, перевод. Пиньинь и перевод можно не писать — подставятся сами.</div>';
     var textarea = document.createElement("textarea");
-    textarea.placeholder = "你好, nǐ hǎo, привет\nтворог, спасибо\n老师, учитель";
+    textarea.placeholder = "你好, nǐ hǎo, привет\n谢谢, спасибо\n老师";
     bulkBody.appendChild(textarea);
     var applyBtn = el("button","bulk-apply","Добавить в урок");
-    applyBtn.addEventListener("click", function(){
-      var added = parseBulk(textarea.value);
+    applyBtn.addEventListener("click", async function(){
+      if(!textarea.value.trim()){ showToast("Не удалось распознать строки"); return; }
+      applyBtn.disabled = true; applyBtn.textContent = "Добавляем…";
+      var added = await parseBulk(textarea.value);
+      applyBtn.disabled = false; applyBtn.textContent = "Добавить в урок";
       if(!added.length){ showToast("Не удалось распознать строки"); return; }
       var kept = state.editingWords.filter(function(w){ return w.hanzi || w.translation; });
       state.editingWords = kept.concat(added);
@@ -1150,10 +1581,15 @@
       hanziInput.placeholder = "汉字";
       hanziInput.value = word.hanzi;
       hanziInput.addEventListener("input", function(){ word.hanzi = hanziInput.value; });
-      hanziInput.addEventListener("blur", function(){
+      hanziInput.addEventListener("blur", async function(){
         if(state.settings.pinyinAuto && !word.pinyin && word.hanzi){
           var auto = autoPinyin(word.hanzi);
           if(auto){ word.pinyin = auto; pinyinInput.value = auto; }
+        }
+        if(!word.translation && word.hanzi){
+          var hanziAtBlur = word.hanzi;
+          var autoT = await autoTranslate(hanziAtBlur);
+          if(autoT && !word.translation && word.hanzi === hanziAtBlur){ word.translation = autoT; transInput.value = autoT; }
         }
       });
 
@@ -1188,21 +1624,28 @@
     });
   }
 
-  function parseBulk(text){
-    return String(text).split(/\n+/).map(function(line){ return line.trim(); }).filter(Boolean).map(function(line){
+  async function parseBulk(text){
+    var parsed = String(text).split(/\n+/).map(function(line){ return line.trim(); }).filter(Boolean).map(function(line){
       var parts = line.split(/\t|[,;]|\s{2,}|\s+[—–-]\s+/).map(function(p){ return p.trim(); }).filter(Boolean);
       var hanzi = parts[0] || "";
       var pinyin = "", translation = "";
       if(parts.length >= 3){ pinyin = parts[1]; translation = parts.slice(2).join(", "); }
       else if(parts.length === 2){
-        if(/[а-яё]/i.test(parts[1])){ translation = parts[1]; pinyin = autoPinyin(hanzi); }
+        if(/[а-яё]/i.test(parts[1])){ translation = parts[1]; }
         else { pinyin = parts[1]; }
-      } else { pinyin = autoPinyin(hanzi); }
+      }
       return { id: uid(), hanzi: hanzi, pinyin: pinyin, translation: translation };
     }).filter(function(w){ return w.hanzi; });
+
+    // пиньинь и перевод, оставшиеся пустыми, подставляем автоматически
+    await Promise.all(parsed.map(async function(w){
+      if(!w.pinyin) w.pinyin = autoPinyin(w.hanzi);
+      if(!w.translation) w.translation = await autoTranslate(w.hanzi);
+    }));
+    return parsed;
   }
 
-  function saveLessonFromEditor(){
+  async function saveLessonFromEditor(){
     var title = state.editingTitle.trim();
     if(!title){ showToast("Введите название урока"); return; }
     var cleanWords = state.editingWords
@@ -1212,6 +1655,24 @@
         return { id: w.id, hanzi: hanzi, pinyin: pinyin, translation: translation, srs: w.srs };
       })
       .filter(function(w){ return w.hanzi || w.pinyin || w.translation; });
+
+    if(state.auth.mode === "account"){
+      try{
+        showToast("Сохраняем…");
+        if(state.editingLessonId){
+          await state.dataAdapter.updateLesson(state.editingLessonId, { title: title, words: cleanWords });
+        } else {
+          await state.dataAdapter.createLesson({ title: title, words: cleanWords });
+        }
+        state.lessons = await state.dataAdapter.getLessons();
+      }catch(e){
+        showToast(friendlyDataError(e));
+        return;
+      }
+      showToast("Урок сохранён");
+      goHome();
+      return;
+    }
 
     if(state.editingLessonId){
       var lesson = findLesson(state.editingLessonId);
@@ -1500,6 +1961,23 @@
     var s = el("section","settings-screen");
     s.appendChild(el("h1","page-title","Настройки"));
 
+    if(state.auth.configured){
+      var accountPanel = el("div","panel");
+      if(state.auth.mode === "account"){
+        accountPanel.innerHTML = '<div class="panel-head"><h2>Аккаунт</h2></div><div class="account-email"></div>';
+        accountPanel.querySelector(".account-email").textContent = state.auth.user ? state.auth.user.email : "";
+        var signOutBtn = el("button","btn-outline","Выйти");
+        signOutBtn.addEventListener("click", doSignOut);
+        accountPanel.appendChild(signOutBtn);
+      } else {
+        accountPanel.innerHTML = '<div class="panel-head"><h2>Аккаунт</h2></div><div class="account-email">Ты работаешь без аккаунта — данные хранятся только в этом браузере.</div>';
+        var loginBtn = el("button","btn-primary","Войти или зарегистрироваться");
+        loginBtn.addEventListener("click", function(){ state.route = "auth-gate"; render(); });
+        accountPanel.appendChild(loginBtn);
+      }
+      s.appendChild(accountPanel);
+    }
+
     var list = el("div","toggle-list");
     var defs = [
       { key:"dark", label:"Тёмная тема", note:"Почти чёрный фон с бордовым отливом" },
@@ -1555,13 +2033,178 @@
     return s;
   }
 
-  /* ===================== INIT ===================== */
-  window.addEventListener("resize", function(){
-    var wide = window.innerWidth >= 900;
-    if(wide !== state.wide){ state.wide = wide; render(); }
-  });
+  /* ===================== AUTH SCREENS ===================== */
+  function renderLoadingScreen(){
+    var wrap = el("div","loading-wrap");
+    wrap.innerHTML = '<div class="loading-mark wine-panel-steep"><span class="logo-glyph">学</span></div><p>Загрузка…</p>';
+    return wrap;
+  }
 
-  render();
+  function renderAuthGate(){
+    var wrap = el("div","auth-screen-wrap");
+    var card = el("div","auth-card");
+
+    card.innerHTML =
+      '<div class="auth-logo wine-panel-steep"><div class="orn"></div><span class="logo-glyph">学</span></div>' +
+      '<div class="auth-title"><h1>汉字 Карточки</h1><p>Войди, чтобы уроки и прогресс сохранялись в облаке</p></div>';
+
+    var tabs = el("div","auth-tabs");
+    var loginTab = el("button", state.authTab === "login" ? "active" : "", "Войти");
+    var signupTab = el("button", state.authTab === "signup" ? "active" : "", "Регистрация");
+    loginTab.addEventListener("click", function(){ state.authTab = "login"; state.authError = null; state.authNotice = null; render(); });
+    signupTab.addEventListener("click", function(){ state.authTab = "signup"; state.authError = null; state.authNotice = null; render(); });
+    tabs.appendChild(loginTab); tabs.appendChild(signupTab);
+    card.appendChild(tabs);
+
+    if(state.authNotice){ card.appendChild(el("div","auth-notice", escapeHtml(state.authNotice))); }
+    if(state.authError){ card.appendChild(el("div","auth-error", escapeHtml(state.authError))); }
+
+    var form = el("div","auth-form");
+    var emailInput = document.createElement("input");
+    emailInput.className = "text-input"; emailInput.type = "email"; emailInput.placeholder = "Email"; emailInput.autocomplete = "email";
+    var pwInput = document.createElement("input");
+    pwInput.className = "text-input"; pwInput.type = "password"; pwInput.placeholder = "Пароль";
+    pwInput.autocomplete = state.authTab === "login" ? "current-password" : "new-password";
+    form.appendChild(emailInput); form.appendChild(pwInput);
+
+    var submitBtn = el("button","btn-primary", state.authBusy ? "Подождите…" : (state.authTab === "login" ? "Войти" : "Создать аккаунт"));
+    submitBtn.disabled = state.authBusy;
+    submitBtn.addEventListener("click", function(){
+      var email = emailInput.value.trim(), pw = pwInput.value;
+      if(!email || !pw){ state.authError = "Заполни email и пароль."; render(); return; }
+      if(state.authTab === "login") doLogin(email, pw); else doSignup(email, pw);
+    });
+    form.appendChild(submitBtn);
+
+    if(state.authTab === "login"){
+      var forgotRow = el("div","auth-link-row");
+      var forgotBtn = el("button",null,"Забыли пароль?");
+      forgotBtn.addEventListener("click", function(){ state.route = "forgot-password"; state.authError = null; state.authNotice = null; render(); });
+      forgotRow.appendChild(forgotBtn);
+      form.appendChild(forgotRow);
+    }
+    card.appendChild(form);
+
+    var divider = el("div","auth-divider");
+    divider.innerHTML = '<span class="line"></span><span>или</span><span class="line"></span>';
+    card.appendChild(divider);
+
+    var googleBtn = el("button","google-btn");
+    googleBtn.innerHTML = GOOGLE_ICON_SVG + '<span>Войти через Google</span>';
+    googleBtn.addEventListener("click", doGoogleLogin);
+    card.appendChild(googleBtn);
+
+    var guestBtn = el("button","btn-ghost","Продолжить без аккаунта");
+    guestBtn.addEventListener("click", continueAsGuest);
+    card.appendChild(guestBtn);
+
+    wrap.appendChild(card);
+    return wrap;
+  }
+
+  function renderForgotPassword(){
+    var wrap = el("div","auth-screen-wrap");
+    var card = el("div","auth-card");
+    card.innerHTML =
+      '<div class="auth-logo wine-panel-steep"><div class="orn"></div><span class="logo-glyph">学</span></div>' +
+      '<div class="auth-title"><h1>Восстановление пароля</h1><p>Вышлем ссылку для сброса на почту</p></div>';
+
+    if(state.authNotice){ card.appendChild(el("div","auth-notice", escapeHtml(state.authNotice))); }
+    if(state.authError){ card.appendChild(el("div","auth-error", escapeHtml(state.authError))); }
+
+    var form = el("div","auth-form");
+    var emailInput = document.createElement("input");
+    emailInput.className = "text-input"; emailInput.type = "email"; emailInput.placeholder = "Email";
+    form.appendChild(emailInput);
+    var sendBtn = el("button","btn-primary", state.authBusy ? "Отправляем…" : "Отправить ссылку");
+    sendBtn.disabled = state.authBusy;
+    sendBtn.addEventListener("click", function(){
+      var email = emailInput.value.trim();
+      if(!email){ state.authError = "Введи email."; render(); return; }
+      doForgotPassword(email);
+    });
+    form.appendChild(sendBtn);
+    card.appendChild(form);
+
+    var backRow = el("div","auth-link-row");
+    var backBtn = el("button",null,"← Назад ко входу");
+    backBtn.addEventListener("click", function(){ state.route = "auth-gate"; state.authTab = "login"; state.authError = null; state.authNotice = null; render(); });
+    backRow.appendChild(backBtn);
+    card.appendChild(backRow);
+
+    wrap.appendChild(card);
+    return wrap;
+  }
+
+  function renderResetPassword(){
+    var wrap = el("div","auth-screen-wrap");
+    var card = el("div","auth-card");
+    card.innerHTML =
+      '<div class="auth-logo wine-panel-steep"><div class="orn"></div><span class="logo-glyph">学</span></div>' +
+      '<div class="auth-title"><h1>Новый пароль</h1><p>Задай новый пароль для входа</p></div>';
+    if(state.authError){ card.appendChild(el("div","auth-error", escapeHtml(state.authError))); }
+
+    var form = el("div","auth-form");
+    var pwInput = document.createElement("input");
+    pwInput.className = "text-input"; pwInput.type = "password"; pwInput.placeholder = "Новый пароль"; pwInput.autocomplete = "new-password";
+    form.appendChild(pwInput);
+    var saveBtn = el("button","btn-primary", state.authBusy ? "Сохраняем…" : "Сохранить пароль");
+    saveBtn.disabled = state.authBusy;
+    saveBtn.addEventListener("click", async function(){
+      var pw = pwInput.value;
+      if(!pw || pw.length < 6){ state.authError = "Пароль слишком короткий (минимум 6 символов)."; render(); return; }
+      state.authBusy = true; state.authError = null; render();
+      try{
+        var res = await sb.auth.updateUser({ password: pw });
+        if(res.error) throw res.error;
+        showToast("Пароль обновлён");
+        await afterAuthSuccess();
+      }catch(e){
+        state.authBusy = false; state.authError = friendlyAuthError(e); render();
+      }
+    });
+    form.appendChild(saveBtn);
+    card.appendChild(form);
+
+    wrap.appendChild(card);
+    return wrap;
+  }
+
+  function renderMigrateModal(){
+    var backdrop = el("div","modal-backdrop");
+    var modal = el("div","modal");
+    modal.innerHTML =
+      '<h3>Перенести локальные уроки?</h3>' +
+      '<p>В этом браузере найдено ' + state.migrateCount + ' ' + plural(state.migrateCount,"урок","урока","уроков") + ', сохранённых без аккаунта. Перенести их в твой аккаунт?</p>';
+    var row = el("div","modal-row");
+    var skipBtn = el("button","btn-outline","Не переносить");
+    var migrateBtn = el("button","btn-primary","Перенести");
+    skipBtn.addEventListener("click", function(){ state.showMigrate = false; render(); });
+    migrateBtn.addEventListener("click", async function(){
+      migrateBtn.disabled = true; migrateBtn.textContent = "Переносим…";
+      try{
+        for(var i=0;i<state.migrateData.length;i++){
+          await state.dataAdapter.createLesson(state.migrateData[i]);
+        }
+        state.lessons = await state.dataAdapter.getLessons();
+        state.showMigrate = false;
+        state.route = state.lessons.length ? "home" : "onboarding";
+        showToast("Уроки перенесены в аккаунт");
+        render();
+      }catch(e){
+        state.showMigrate = false;
+        showToast(friendlyDataError(e));
+        render();
+      }
+    });
+    row.appendChild(skipBtn); row.appendChild(migrateBtn);
+    modal.appendChild(row);
+    backdrop.appendChild(modal);
+    return backdrop;
+  }
+
+  /* ===================== INIT ===================== */
+  boot();
 
 })();
 </script>
