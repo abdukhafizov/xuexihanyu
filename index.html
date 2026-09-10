@@ -142,11 +142,13 @@
   .lesson-card .clickable{flex:1; min-width:0; cursor:pointer;}
   .lesson-card .title{font-family:'Noto Serif SC',serif; font-size:16.5px; font-weight:600; line-height:1.3;}
   .lesson-card .meta{margin-top:5px; font-size:12.5px; color:var(--soft);}
-  .lesson-card .actions{display:flex; gap:6px; flex:0 0 auto;}
+  .lesson-card .actions{display:flex; gap:6px; flex:0 0 auto; flex-wrap:wrap; justify-content:flex-end; max-width:118px;}
   .icon-btn-sq{width:36px; height:36px; border:1px solid var(--line); border-radius:10px; background:transparent; cursor:pointer; color:var(--soft); display:flex; align-items:center; justify-content:center; padding:0;}
   .icon-btn-sq .icon{width:16px; height:16px;}
   .icon-btn-sq:hover{color:var(--wine); border-color:var(--gold);}
   .icon-btn-sq.danger:hover{border-color:var(--wine);}
+  .icon-btn-sq:disabled{opacity:.35; cursor:default;}
+  .icon-btn-sq:disabled:hover{color:var(--soft); border-color:var(--line);}
   .lesson-card .prog-row{display:flex; align-items:center; gap:10px;}
   .lesson-card .prog-track{flex:1; height:7px; border-radius:99px; background:var(--sunk); overflow:hidden;}
   .lesson-card .prog-fill{height:100%; border-radius:99px; background:linear-gradient(90deg,var(--goldSoft),var(--gold));}
@@ -613,7 +615,9 @@
     moon: '<path d="M15.5 12.6A6.5 6.5 0 0 1 7.4 4.5a6.6 6.6 0 1 0 8.1 8.1z"/>',
     pencil: '<path d="M13.4 3.6l3 3L7.5 15.5l-3.9.9.9-3.9z"/>',
     trash: '<path d="M3.5 5.5h13M8 5.5V3.8h4v1.7M5.5 5.5l.8 11.2h7.4l.8-11.2M8.4 8.7v5M11.6 8.7v5"/>',
-    shuffle: '<path d="M3 5.5h3.2l7.6 9h3.2M3 14.5h3.2l3-3.6M11.4 6.9l2.4-1.4h3.2"/><path d="M15.2 3.2L17.8 5.5l-2.6 2.3M15.2 12.2l2.6 2.3-2.6 2.3"/>'
+    shuffle: '<path d="M3 5.5h3.2l7.6 9h3.2M3 14.5h3.2l3-3.6M11.4 6.9l2.4-1.4h3.2"/><path d="M15.2 3.2L17.8 5.5l-2.6 2.3M15.2 12.2l2.6 2.3-2.6 2.3"/>',
+    chevronUp: '<path d="M4.5 12.5l5.5-6 5.5 6"/>',
+    chevronDown: '<path d="M4.5 7.5l5.5 6 5.5-6"/>'
   };
   function iconSvg(name){
     return '<svg viewBox="0 0 20 20" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICON_PATHS[name] || "") + '</svg>';
@@ -712,7 +716,7 @@
     return {
       getLessons: async function(){
         var uid_ = currentUserId();
-        var lr = await sb.from("lessons").select("id,title,created_at").eq("user_id", uid_).order("created_at", { ascending:true });
+        var lr = await sb.from("lessons").select("id,title,position,created_at").eq("user_id", uid_).order("position", { ascending:true }).order("created_at", { ascending:true });
         if(lr.error) throw lr.error;
         var lessonIds = lr.data.map(function(l){ return l.id; });
         var wordsRows = [];
@@ -742,32 +746,40 @@
         return lr.data.map(function(l){ return { id:l.id, title:l.title, words: wordsByLesson[l.id] || [] }; });
       },
 
+      // Возвращает созданный урок целиком (с настоящими id слов) — чтобы вызывающий код
+      // просто добавил его в state.lessons локально, без повторного похода за всеми уроками.
       createLesson: async function(payload){
         var uid_ = currentUserId();
-        var lres = await sb.from("lessons").insert({ user_id: uid_, title: payload.title }).select().single();
+        var position = typeof payload.position === "number" ? payload.position : 0;
+        var lres = await sb.from("lessons").insert({ user_id: uid_, title: payload.title, position: position }).select().single();
         if(lres.error) throw lres.error;
         var words = payload.words || [];
-        if(!words.length) return;
+        if(!words.length) return { id: lres.data.id, title: lres.data.title, words: [] };
         var rows = words.map(function(w){ return { lesson_id: lres.data.id, hanzi:w.hanzi, pinyin:w.pinyin||"", translation:w.translation||"" }; });
         var wres = await sb.from("words").insert(rows).select();
         if(wres.error) throw wres.error;
         var progressRows = [];
-        for(var i=0;i<words.length;i++){
-          if(words[i].srs && wres.data[i]){
+        var resultWords = words.map(function(w, i){
+          var real = wres.data[i];
+          if(w.srs && real){
             progressRows.push({
-              word_id: wres.data[i].id, user_id: uid_,
-              interval: words[i].srs.interval, ease_factor: words[i].srs.easeFactor,
-              repetitions: words[i].srs.repetitions, next_review_date: words[i].srs.nextReviewDate,
-              status: words[i].srs.status || null
+              word_id: real.id, user_id: uid_,
+              interval: w.srs.interval, ease_factor: w.srs.easeFactor,
+              repetitions: w.srs.repetitions, next_review_date: w.srs.nextReviewDate,
+              status: w.srs.status || null
             });
           }
-        }
+          return { id: real ? real.id : w.id, hanzi: w.hanzi, pinyin: w.pinyin||"", translation: w.translation||"", srs: w.srs };
+        });
         if(progressRows.length){
           var pres = await sb.from("word_progress").insert(progressRows);
           if(pres.error) throw pres.error;
         }
+        return { id: lres.data.id, title: lres.data.title, words: resultWords };
       },
 
+      // Возвращает актуальный список слов (с настоящими id у новых) — вызывающий код
+      // обновляет нужный урок в state.lessons напрямую, без getLessons().
       updateLesson: async function(id, payload){
         var tres = await sb.from("lessons").update({ title: payload.title }).eq("id", id).eq("user_id", currentUserId());
         if(tres.error) throw tres.error;
@@ -782,21 +794,34 @@
           var dres = await sb.from("words").delete().in("id", toDelete);
           if(dres.error) throw dres.error;
         }
+        var resultWords = [];
         for(var i=0;i<incoming.length;i++){
           var w = incoming[i];
           if(existingIds.indexOf(w.id) >= 0){
             var ures = await sb.from("words").update({ hanzi:w.hanzi, pinyin:w.pinyin||"", translation:w.translation||"" }).eq("id", w.id);
             if(ures.error) throw ures.error;
+            resultWords.push({ id: w.id, hanzi:w.hanzi, pinyin:w.pinyin||"", translation:w.translation||"", srs:w.srs });
           } else {
-            var ires = await sb.from("words").insert({ lesson_id:id, hanzi:w.hanzi, pinyin:w.pinyin||"", translation:w.translation||"" });
+            var ires = await sb.from("words").insert({ lesson_id:id, hanzi:w.hanzi, pinyin:w.pinyin||"", translation:w.translation||"" }).select().single();
             if(ires.error) throw ires.error;
+            resultWords.push({ id: ires.data.id, hanzi:w.hanzi, pinyin:w.pinyin||"", translation:w.translation||"", srs:w.srs });
           }
         }
+        return resultWords;
       },
 
       deleteLesson: async function(id){
         var res = await sb.from("lessons").delete().eq("id", id).eq("user_id", currentUserId());
         if(res.error) throw res.error;
+      },
+
+      // Перезаписывает position для всех уроков согласно новому порядку id.
+      reorderLessons: async function(orderedIds){
+        var uid_ = currentUserId();
+        for(var i=0;i<orderedIds.length;i++){
+          var res = await sb.from("lessons").update({ position: i }).eq("id", orderedIds[i]).eq("user_id", uid_);
+          if(res.error) throw res.error;
+        }
       },
 
       saveWordProgress: async function(wordId, srs){
@@ -1044,9 +1069,9 @@
     if(state.auth.mode === "account"){
       try{
         for(var i=0;i<SEED.length;i++){
-          await state.dataAdapter.createLesson({ title: SEED[i].title, words: SEED[i].words });
+          var created = await state.dataAdapter.createLesson({ title: SEED[i].title, words: SEED[i].words, position: state.lessons.length });
+          state.lessons.push(created);
         }
-        state.lessons = await state.dataAdapter.getLessons();
       }catch(e){ showToast(friendlyDataError(e)); return; }
     } else {
       var seeded = SEED.map(function(l){ return { id: uid(), title: l.title, words: l.words.map(function(w){ return Object.assign({}, w, { id: uid() }); }) }; });
@@ -1054,6 +1079,21 @@
       persist();
     }
     goHome();
+  }
+
+  function moveLesson(index, direction){
+    var newIndex = index + direction;
+    if(newIndex < 0 || newIndex >= state.lessons.length) return;
+    var tmp = state.lessons[index];
+    state.lessons[index] = state.lessons[newIndex];
+    state.lessons[newIndex] = tmp;
+    render();
+    if(state.auth.mode === "account"){
+      var orderedIds = state.lessons.map(function(l){ return l.id; });
+      state.dataAdapter.reorderLessons(orderedIds).catch(function(e){ showToast(friendlyDataError(e)); });
+    } else {
+      persist();
+    }
   }
 
   function resetStudy(shuffle){
@@ -1104,17 +1144,17 @@
     render();
   }
 
-  async function handleMarkCard(word, correct){
+  function handleMarkCard(word, correct){
     if(state.settings.srsEnabled) srsAnswer(word, correct);
     if(state.auth.mode === "account"){
-      try{ await state.dataAdapter.saveWordProgress(word.id, word.srs); }
-      catch(e){ showToast(friendlyDataError(e)); }
+      // не блокируем переход к следующей карточке ожиданием сети — пишем в фоне
+      state.dataAdapter.saveWordProgress(word.id, word.srs).catch(function(e){ showToast(friendlyDataError(e)); });
     } else {
       persist();
     }
     goToNextCard();
   }
-  async function handleQuizAnswer(word, text, correct){
+  function handleQuizAnswer(word, text, correct){
     if(state.study.picked) return;
     state.study.picked = text;
     state.study.quizTotalAnswered++;
@@ -1122,8 +1162,7 @@
     logQuizAnswer(correct);
     if(state.settings.srsEnabled) srsAnswer(word, correct);
     if(state.auth.mode === "account"){
-      try{ await state.dataAdapter.saveWordProgress(word.id, word.srs); }
-      catch(e){ showToast(friendlyDataError(e)); }
+      state.dataAdapter.saveWordProgress(word.id, word.srs).catch(function(e){ showToast(friendlyDataError(e)); });
     } else {
       persist();
     }
@@ -1361,7 +1400,7 @@
     s.appendChild(sectionRow);
 
     var grid = el("div","lesson-grid");
-    state.lessons.forEach(function(lesson){ grid.appendChild(renderLessonCard(lesson)); });
+    state.lessons.forEach(function(lesson, i){ grid.appendChild(renderLessonCard(lesson, i, state.lessons.length)); });
     var newTile = el("button","new-lesson-tile");
     newTile.innerHTML = '<span class="plus">+</span><span>Создать урок</span>';
     newTile.addEventListener("click", openCreateLesson);
@@ -1371,7 +1410,7 @@
     return s;
   }
 
-  function renderLessonCard(lesson){
+  function renderLessonCard(lesson, index, total){
     var known = lesson.words.filter(function(w){ return w.srs && w.srs.interval >= LEARNED_INTERVAL_THRESHOLD; }).length;
     var pct = lesson.words.length ? Math.round(known / lesson.words.length * 100) : 0;
     var card = el("div","lesson-card");
@@ -1386,6 +1425,16 @@
     top.appendChild(clickable);
 
     var actions = el("div","actions");
+    var upBtn = el("button","icon-btn-sq");
+    upBtn.title = "Переместить выше";
+    upBtn.innerHTML = '<span class="icon">' + iconSvg("chevronUp") + '</span>';
+    upBtn.disabled = index === 0;
+    upBtn.addEventListener("click", function(ev){ ev.stopPropagation(); moveLesson(index, -1); });
+    var downBtn = el("button","icon-btn-sq");
+    downBtn.title = "Переместить ниже";
+    downBtn.innerHTML = '<span class="icon">' + iconSvg("chevronDown") + '</span>';
+    downBtn.disabled = index === total - 1;
+    downBtn.addEventListener("click", function(ev){ ev.stopPropagation(); moveLesson(index, 1); });
     var editBtn = el("button","icon-btn-sq");
     editBtn.title = "Редактировать";
     editBtn.innerHTML = '<span class="icon">' + iconSvg("pencil") + '</span>';
@@ -1394,6 +1443,8 @@
     delBtn.title = "Удалить";
     delBtn.innerHTML = '<span class="icon">' + iconSvg("trash") + '</span>';
     delBtn.addEventListener("click", function(ev){ ev.stopPropagation(); state.confirmDelete = lesson.id; render(); });
+    actions.appendChild(upBtn);
+    actions.appendChild(downBtn);
     actions.appendChild(editBtn);
     actions.appendChild(delBtn);
     top.appendChild(actions);
@@ -1421,26 +1472,29 @@
     var cancelBtn = el("button","btn-outline","Отмена");
     var delBtn = el("button","btn-danger","Удалить");
     cancelBtn.addEventListener("click", function(){ state.confirmDelete = null; render(); });
-    delBtn.addEventListener("click", async function(){
+    delBtn.addEventListener("click", function(){
       var idToDelete = state.confirmDelete;
-      if(state.auth.mode === "account"){
-        try{
-          await state.dataAdapter.deleteLesson(idToDelete);
-          state.lessons = await state.dataAdapter.getLessons();
-        }catch(e){
-          state.confirmDelete = null;
-          showToast(friendlyDataError(e));
-          render();
-          return;
-        }
-      } else {
-        state.lessons = state.lessons.filter(function(l){ return l.id !== idToDelete; });
-        persist();
-      }
+      var removedLesson = null, removedIndex = -1;
+      state.lessons.forEach(function(l, i){ if(l.id === idToDelete){ removedLesson = l; removedIndex = i; } });
+
+      // удаляем локально и показываем результат сразу — не ждём сеть
+      state.lessons = state.lessons.filter(function(l){ return l.id !== idToDelete; });
       state.confirmDelete = null;
       if(state.lessons.length === 0) state.route = "onboarding";
       render();
       showToast("Урок удалён");
+
+      if(state.auth.mode === "account"){
+        state.dataAdapter.deleteLesson(idToDelete).catch(function(e){
+          // не получилось на сервере — возвращаем урок обратно и сообщаем об ошибке
+          if(removedLesson){ state.lessons.splice(removedIndex, 0, removedLesson); }
+          if(state.route === "onboarding" && state.lessons.length){ state.route = "home"; }
+          showToast(friendlyDataError(e));
+          render();
+        });
+      } else {
+        persist();
+      }
     });
     row.appendChild(cancelBtn);
     row.appendChild(delBtn);
@@ -1593,7 +1647,18 @@
         if(!word.translation && word.hanzi){
           var hanziAtBlur = word.hanzi;
           var autoT = await autoTranslate(hanziAtBlur);
-          if(autoT && !word.translation && word.hanzi === hanziAtBlur){ word.translation = autoT; transInput.value = autoT; }
+          if(autoT && !word.translation && word.hanzi === hanziAtBlur){
+            word.translation = autoT;
+            if(transInput.isConnected){
+              // обычный случай: строка всё ещё на месте — просто обновляем поле
+              transInput.value = autoT;
+            } else {
+              // строку успели перерисовать, пока шёл запрос (например, добавили ещё
+              // слово) — transInput ссылается на отсоединённый узел, поэтому
+              // перерисовываем контейнер заново, чтобы перевод точно стал виден
+              renderWordRows(container);
+            }
+          }
         }
       });
 
@@ -1662,13 +1727,14 @@
 
     if(state.auth.mode === "account"){
       try{
-        showToast("Сохраняем…");
         if(state.editingLessonId){
-          await state.dataAdapter.updateLesson(state.editingLessonId, { title: title, words: cleanWords });
+          var updatedWords = await state.dataAdapter.updateLesson(state.editingLessonId, { title: title, words: cleanWords });
+          var lesson_ = findLesson(state.editingLessonId);
+          if(lesson_){ lesson_.title = title; lesson_.words = updatedWords; }
         } else {
-          await state.dataAdapter.createLesson({ title: title, words: cleanWords });
+          var created = await state.dataAdapter.createLesson({ title: title, words: cleanWords, position: state.lessons.length });
+          state.lessons.push(created);
         }
-        state.lessons = await state.dataAdapter.getLessons();
       }catch(e){
         showToast(friendlyDataError(e));
         return;
@@ -2188,9 +2254,9 @@
       migrateBtn.disabled = true; migrateBtn.textContent = "Переносим…";
       try{
         for(var i=0;i<state.migrateData.length;i++){
-          await state.dataAdapter.createLesson(state.migrateData[i]);
+          var created = await state.dataAdapter.createLesson(Object.assign({}, state.migrateData[i], { position: state.lessons.length }));
+          state.lessons.push(created);
         }
-        state.lessons = await state.dataAdapter.getLessons();
         state.showMigrate = false;
         state.route = state.lessons.length ? "home" : "onboarding";
         showToast("Уроки перенесены в аккаунт");

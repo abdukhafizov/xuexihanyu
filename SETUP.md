@@ -42,6 +42,7 @@ create table public.lessons (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   title text not null,
+  position int not null default 0,
   created_at timestamptz not null default now()
 );
 
@@ -81,6 +82,12 @@ create index daily_stats_user_date_idx on public.daily_stats(user_id, date);
 ```
 
 Должно появиться сообщение `Success. No rows returned`.
+
+> **Уже создавал таблицы раньше и заводишь `position` только сейчас?** Выполни отдельным запросом в SQL Editor:
+> ```sql
+> alter table public.lessons add column if not exists position int not null default 0;
+> ```
+> Это добавит колонку для ручного порядка уроков (стрелки «переместить выше/ниже» в приложении), не трогая уже сохранённые уроки.
 
 ## 4. Включить Row Level Security (RLS)
 
