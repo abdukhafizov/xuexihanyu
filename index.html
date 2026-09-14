@@ -14,6 +14,7 @@
     --line:rgba(140,34,48,0.14); --shadow:0 6px 18px rgba(107,22,34,0.06);
     --tone-1:#B07C2A; --tone-2:#6E8A4E; --tone-3:#3F6E8C; --tone-4:#8C3A52; --tone-5:#8A7A72;
     --cream:#FFF7E6;
+    --ease:cubic-bezier(.22,1,.36,1);
   }
   :root.dark{
     --bg:#150F0F; --surface:#1E1615; --sunk:#2A1E1D; --ink:#F2E6D5; --soft:#A5928A;
@@ -34,8 +35,10 @@
   input::placeholder,textarea::placeholder{color:#B3A096;}
   ::-webkit-scrollbar{width:8px;height:8px;}
   ::-webkit-scrollbar-thumb{background:rgba(140,34,48,.22);border-radius:8px;}
-  @keyframes zhFade{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;} }
+  @keyframes zhFade{ from{opacity:0; transform:translateY(16px) scale(.99);} to{opacity:1; transform:none;} }
   @keyframes zhBounce{ from{transform:translateY(0);} to{transform:translateY(-9px);} }
+  @keyframes zhPop{ from{opacity:0; transform:translateY(10px) scale(.96);} to{opacity:1; transform:none;} }
+  @keyframes zhFadeOpacity{ from{opacity:0;} to{opacity:1;} }
 
   .serif{font-family:'Noto Serif SC',serif;}
   .logo-glyph{font-family:'Ma Shan Zheng',serif;}
@@ -97,7 +100,7 @@
   h1.page-title{font-family:'Noto Serif SC',serif; font-weight:600; margin:0; font-size:clamp(22px,4vw,28px);}
 
   /* ---------- onboarding ---------- */
-  .onboarding{flex:1; display:flex; flex-direction:column; justify-content:center; gap:32px; animation:zhFade .4s ease; padding:24px 0 8px;}
+  .onboarding{flex:1; display:flex; flex-direction:column; justify-content:center; gap:32px; animation:zhFade .55s var(--ease); padding:24px 0 8px;}
   .onboarding-tile{position:relative; align-self:center; width:min(290px,78%); aspect-ratio:1/1.18; border-radius:26px; box-shadow:0 26px 60px -18px rgba(107,22,34,.55); display:flex; align-items:center; justify-content:center; overflow:hidden;}
   .onboarding-tile span{position:relative; font-family:'Noto Serif SC',serif; font-size:clamp(88px,19vw,126px); font-weight:500; color:var(--gold); line-height:1;}
   .onboarding-copy{text-align:center; display:flex; flex-direction:column; gap:14px; align-items:center;}
@@ -111,7 +114,7 @@
   .btn-ghost:hover{color:var(--wine);}
 
   /* ---------- home ---------- */
-  .home-screen{animation:zhFade .3s ease; display:flex; flex-direction:column; gap:20px;}
+  .home-screen{animation:zhFade .45s var(--ease); display:flex; flex-direction:column; gap:20px;}
   .home-header{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; padding-top:4px;}
   .eyebrow{font-size:12px; letter-spacing:.15em; text-transform:uppercase; color:var(--soft);}
   .home-header h1{font-family:'Noto Serif SC',serif; font-size:clamp(23px,4.4vw,30px); font-weight:600; margin:6px 0 0;}
@@ -160,7 +163,7 @@
   .new-lesson-tile .plus{font-size:24px; line-height:1;}
 
   /* ---------- editor ---------- */
-  .editor-screen{animation:zhFade .3s ease; display:flex; flex-direction:column; gap:18px; padding-top:4px;}
+  .editor-screen{animation:zhFade .45s var(--ease); display:flex; flex-direction:column; gap:18px; padding-top:4px;}
   .field-label{display:block; font-size:11.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--soft); margin-bottom:8px;}
   .text-input{width:100%; min-height:52px; padding:14px 16px; border:1px solid var(--line); border-radius:14px; background:var(--surface); color:var(--ink); font-size:16px; outline:none;}
   .text-input:focus{border-color:var(--gold);}
@@ -195,7 +198,7 @@
   .btn-save:hover{color:var(--gold);}
 
   /* ---------- study ---------- */
-  .study-screen{animation:zhFade .3s ease; flex:1; display:flex; flex-direction:column; gap:16px;}
+  .study-screen{animation:zhFade .45s var(--ease); flex:1; display:flex; flex-direction:column; gap:16px;}
   .study-title{font-family:'Noto Serif SC',serif; font-size:16.5px; font-weight:600;}
   .study-sub{font-size:12px; color:var(--soft);}
   .mode-tabs{display:flex; padding:4px; gap:4px; border:1px solid var(--line); border-radius:14px; background:var(--surface);}
@@ -250,7 +253,7 @@
   .guess-next:hover{color:var(--gold);}
 
   /* ---------- done screen ---------- */
-  .done-screen{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:10px; padding:20px; animation:zhFade .35s ease;}
+  .done-screen{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:10px; padding:20px; animation:zhFade .5s var(--ease);}
   .done-emoji{width:min(220px,64%); aspect-ratio:1/1; border-radius:26px; display:flex; align-items:center; justify-content:center; box-shadow:0 26px 60px -18px rgba(107,22,34,.55); margin-bottom:8px; animation:zhBounce .9s ease infinite alternate; position:relative; overflow:hidden;}
   .done-emoji span{position:relative; font-family:'Noto Serif SC',serif; font-size:76px; color:var(--gold);}
   .done-screen h2{font-family:'Noto Serif SC',serif; margin:4px 0 4px; font-size:26px;}
@@ -259,7 +262,7 @@
   .done-actions > *{flex:1;}
 
   /* ---------- stats ---------- */
-  .stats-screen{animation:zhFade .3s ease; display:flex; flex-direction:column; gap:18px; padding-top:4px;}
+  .stats-screen{animation:zhFade .45s var(--ease); display:flex; flex-direction:column; gap:18px; padding-top:4px;}
   .stats-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px;}
   .streak-tile{grid-column:span 2; position:relative; overflow:hidden; padding:20px; border-radius:20px; box-shadow:0 18px 36px -20px rgba(107,22,34,.6);}
   .streak-tile .lbl{position:relative; font-size:11.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--gold);}
@@ -290,7 +293,7 @@
   .bucket-count{font-size:13px; width:38px; text-align:right;}
 
   /* ---------- settings ---------- */
-  .settings-screen{animation:zhFade .3s ease; display:flex; flex-direction:column; gap:18px; padding-top:4px;}
+  .settings-screen{animation:zhFade .45s var(--ease); display:flex; flex-direction:column; gap:18px; padding-top:4px;}
   .toggle-list{border:1px solid var(--line); border-radius:20px; background:var(--surface); overflow:hidden;}
   .toggle-row{display:flex; align-items:center; gap:16px; padding:17px 20px; border-bottom:1px solid var(--line);}
   .toggle-row:last-child{border-bottom:none;}
@@ -322,10 +325,10 @@
   .bnav-fab{flex:0 0 52px; min-height:52px; margin:-14px 2px 0; border:none; border-radius:18px; background:linear-gradient(140deg,var(--wine),var(--deep)); color:var(--gold); display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 12px 24px -10px rgba(107,22,34,.65), 0 0 0 1px rgba(212,175,55,.45) inset; font-size:24px; line-height:1; padding-bottom:2px;}
 
   /* ---------- toast / modal (kept from base app) ---------- */
-  .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(10px); background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:12px; font-size:13px; opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; z-index:100; box-shadow:0 8px 20px rgba(0,0,0,0.25);}
+  .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(10px); background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:12px; font-size:13px; opacity:0; pointer-events:none; transition:opacity .35s var(--ease), transform .35s var(--ease); z-index:100; box-shadow:0 8px 20px rgba(0,0,0,0.25);}
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
-  .modal-backdrop{position:fixed; inset:0; background:rgba(20,12,10,.5); display:flex; align-items:center; justify-content:center; z-index:50; padding:20px; animation:zhFade .2s ease;}
-  .modal{background:var(--surface); border-radius:20px; padding:22px; max-width:340px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,.3); text-align:center;}
+  .modal-backdrop{position:fixed; inset:0; background:rgba(20,12,10,.5); display:flex; align-items:center; justify-content:center; z-index:50; padding:20px; animation:zhFadeOpacity .22s var(--ease);}
+  .modal{background:var(--surface); border-radius:20px; padding:22px; max-width:340px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,.3); text-align:center; animation:zhPop .32s var(--ease);}
   .modal h3{font-family:'Noto Serif SC',serif; margin:0 0 8px; font-size:17px;}
   .modal p{margin:0 0 18px; color:var(--soft); font-size:14px;}
   .modal-row{display:flex; gap:10px;}
@@ -334,7 +337,7 @@
 
   /* ---------- auth screens (вход/регистрация/восстановление) ---------- */
   .auth-screen-wrap{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; background:var(--bg);}
-  .auth-card{width:100%; max-width:400px; display:flex; flex-direction:column; gap:20px; animation:zhFade .35s ease;}
+  .auth-card{width:100%; max-width:400px; display:flex; flex-direction:column; gap:20px; animation:zhFade .5s var(--ease);}
   .auth-logo{align-self:center; width:84px; height:84px; border-radius:20px; display:flex; align-items:center; justify-content:center; box-shadow:0 16px 34px -14px rgba(107,22,34,.55); overflow:hidden;}
   .auth-logo span{position:relative; font-family:'Ma Shan Zheng',serif; font-size:40px; color:var(--gold);}
   .auth-title{text-align:center;}
@@ -651,6 +654,10 @@
   ];
 
   /* ===================== APP STATE ===================== */
+  // отдельно от state: экран каждый раз перестраивается с нуля, поэтому
+  // этот флаг живёт только между кликом на карточку и следующим render()
+  // и не должен сохраняться/сериализоваться вместе с остальным состоянием
+  var pendingFlipAnimation = false;
   var state = {
     route: "loading",
     wide: window.innerWidth >= 900,
@@ -1161,6 +1168,11 @@
 
   function flipCard(){
     state.study.flipped = !state.study.flipped;
+    // весь экран каждый раз перерисовывается с нуля, поэтому карточка
+    // получает свой класс "flipped" уже в момент создания и CSS-переход
+    // проиграть не успевает — отмечаем, что именно сейчас нужно
+    // анимировать переворот, а не просто показать конечное состояние
+    pendingFlipAnimation = true;
     if(state.study.flipped) speak(currentWord().hanzi);
     render();
   }
@@ -1836,7 +1848,21 @@
   function renderFlipStage(word){
     var stage = el("div","flip-stage");
 
-    var card = el("div","flashcard" + (state.study.flipped ? " flipped" : ""));
+    // если карточку только что перевернули кликом — рисуем её ещё в старом
+    // положении, а на следующем кадре переключаем класс, чтобы сыграл
+    // CSS-переход rotateY; иначе элемент создаётся сразу в конечном виде
+    // и анимации переворота не видно вообще
+    var animateFlip = pendingFlipAnimation;
+    pendingFlipAnimation = false;
+    var targetFlipped = state.study.flipped;
+    var startFlipped = animateFlip ? !targetFlipped : targetFlipped;
+
+    var card = el("div","flashcard" + (startFlipped ? " flipped" : ""));
+    if(animateFlip){
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){ card.classList.toggle("flipped", targetFlipped); });
+      });
+    }
     var front = el("div","fc-face fc-front wine-panel-steep");
     front.innerHTML = '<div class="orn"></div><div class="ring-tight"></div><span class="hanzi-big"></span><span class="tap-hint">Нажми, чтобы перевернуть</span>';
     front.querySelector(".hanzi-big").textContent = word.hanzi;
