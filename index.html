@@ -85,7 +85,7 @@
   .main{flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:14px;}
   .main.wide{padding:32px 40px;}
   .main.narrow{padding:18px 16px 0;}
-  .main.narrow .content-col{padding-bottom:calc(104px + env(safe-area-inset-bottom));}
+  .main.narrow .content-col{padding-bottom:calc(140px + env(safe-area-inset-bottom));}
   .content-col{width:100%; max-width:780px; display:flex; flex-direction:column;}
 
   .screen-header{display:flex; align-items:center; gap:12px;}
@@ -876,8 +876,17 @@
     state.auth.mode = "account";
     state.dataAdapter = createSupabaseAdapter();
     state.authBusy = false; state.authError = null; state.authNotice = null;
-    await loadAccountData();
-    checkMigration();
+    // Вход уже состоялся (сессия есть) — даже если подгрузка уроков не удастся
+    // (например, забыли выполнить SQL-миграцию в SETUP.md), не отправляем
+    // пользователя обратно на экран входа с невнятной ошибкой Postgres, а
+    // пускаем внутрь с пустым списком и понятным тостом.
+    try{
+      await loadAccountData();
+      checkMigration();
+    }catch(e){
+      console.error("Failed to load account data", e);
+      showToast(friendlyDataError(e));
+    }
     state.route = state.lessons.length ? "home" : "onboarding";
     render();
   }
@@ -990,8 +999,16 @@
         state.auth.user = session.user;
         state.auth.mode = "account";
         state.dataAdapter = createSupabaseAdapter();
-        await loadAccountData();
-        checkMigration();
+        // Сессия уже есть (пользователь реально вошёл, в т.ч. через Google) — если
+        // подгрузка уроков упадёт (например, не выполнена SQL-миграция из SETUP.md),
+        // не выкидываем обратно на экран входа, а пускаем внутрь с пустым списком.
+        try{
+          await loadAccountData();
+          checkMigration();
+        }catch(dataErr){
+          console.error("Failed to load account data", dataErr);
+          showToast(friendlyDataError(dataErr));
+        }
         state.route = state.lessons.length ? "home" : "onboarding";
       } else {
         state.route = "auth-gate";
