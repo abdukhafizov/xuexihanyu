@@ -85,7 +85,8 @@
   .main{flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:14px;}
   .main.wide{padding:32px 40px;}
   .main.narrow{padding:18px 16px 0;}
-  .main.narrow .content-col{padding-bottom:calc(140px + env(safe-area-inset-bottom));}
+  .main.narrow .content-col{padding-bottom:calc(28px + env(safe-area-inset-bottom));}
+  .main.narrow.has-nav .content-col{padding-bottom:calc(112px + env(safe-area-inset-bottom));}
   .content-col{width:100%; max-width:780px; display:flex; flex-direction:column;}
 
   .screen-header{display:flex; align-items:center; gap:12px;}
@@ -309,13 +310,16 @@
   .tone-chip .sample{font-family:'Noto Serif SC',serif; font-size:14px;}
   .tone-chip .label{font-size:12px; color:var(--soft);}
 
-  /* ---------- bottom nav (mobile) ---------- */
-  .bottom-nav{position:sticky; bottom:0; width:100%; max-width:780px; margin-top:auto; padding:12px 10px calc(12px + env(safe-area-inset-bottom)); border-radius:22px 22px 0 0; border-top:1px solid var(--line); background:var(--surface); box-shadow:0 -10px 30px -18px rgba(107,22,34,.35); display:flex; gap:4px;}
-  .bnav-btn{flex:1 1 0; min-width:0; min-height:66px; border:none; border-radius:16px; background:transparent; color:var(--soft); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; font-size:10.5px; white-space:nowrap; cursor:pointer;}
+  /* ---------- bottom nav (mobile) ----------
+     плавающая "капсула": не встроена в поток страницы (position:fixed),
+     поэтому не отжимает контент и не может наехать на кнопки экрана —
+     появляется только там, где для неё явно оставлено место (.has-nav) */
+  .bottom-nav{position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom)); transform:translateX(-50%); width:calc(100% - 32px); max-width:420px; margin:0; padding:8px; border-radius:26px; border:1px solid var(--line); background:var(--surface); box-shadow:0 18px 40px -16px rgba(107,22,34,.4), 0 2px 14px rgba(107,22,34,.1); display:flex; align-items:center; gap:4px; z-index:40;}
+  .bnav-btn{flex:1 1 0; min-width:0; min-height:52px; border:none; border-radius:16px; background:transparent; color:var(--soft); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; font-size:10px; white-space:nowrap; cursor:pointer;}
   .bnav-btn.active{background:rgba(140,34,48,0.08); color:var(--wine);}
   :root.dark .bnav-btn.active{background:rgba(224,190,82,0.12);}
-  .bnav-btn .icon{width:21px; height:21px;}
-  .bnav-fab{flex:0 0 66px; min-height:66px; margin:-18px 4px 0; border:none; border-radius:20px; background:linear-gradient(140deg,var(--wine),var(--deep)); color:var(--gold); display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 12px 24px -10px rgba(107,22,34,.65), 0 0 0 1px rgba(212,175,55,.45) inset; font-size:28px; line-height:1; padding-bottom:3px;}
+  .bnav-btn .icon{width:19px; height:19px;}
+  .bnav-fab{flex:0 0 52px; min-height:52px; margin:-14px 2px 0; border:none; border-radius:18px; background:linear-gradient(140deg,var(--wine),var(--deep)); color:var(--gold); display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 12px 24px -10px rgba(107,22,34,.65), 0 0 0 1px rgba(212,175,55,.45) inset; font-size:24px; line-height:1; padding-bottom:2px;}
 
   /* ---------- toast / modal (kept from base app) ---------- */
   .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(10px); background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:12px; font-size:13px; opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; z-index:100; box-shadow:0 8px 20px rgba(0,0,0,0.25);}
@@ -1260,7 +1264,11 @@
     else if(state.route === "settings") content = renderSettings();
     else content = renderHome();
 
-    app.appendChild(renderShell(content, true));
+    // на экранах редактирования урока и прохождения карточек своя нижняя
+    // панель действий (сохранить/отмена, "знаю"/"повторить") — общая навигация
+    // там только мешает и перекрывает эти кнопки, поэтому её прячем
+    var withNav = state.route !== "editor" && state.route !== "study";
+    app.appendChild(renderShell(content, withNav));
 
     if(state.confirmDelete){ app.appendChild(renderDeleteModal()); }
     if(state.showMigrate){ app.appendChild(renderMigrateModal()); }
@@ -1286,7 +1294,8 @@
       shell.appendChild(renderSidebar());
     }
 
-    var main = el("main","main " + (state.wide ? "wide" : "narrow"));
+    var showBottomNav = withNav && !state.wide;
+    var main = el("main","main " + (state.wide ? "wide" : "narrow") + (showBottomNav ? " has-nav" : ""));
     if(!state.online && state.auth.mode === "account"){
       main.appendChild(el("div","offline-banner","Нет соединения — изменения не сохраняются"));
     }
@@ -1294,7 +1303,7 @@
     col.appendChild(content);
     main.appendChild(col);
 
-    if(withNav && !state.wide){
+    if(showBottomNav){
       main.appendChild(renderBottomNav());
     }
     shell.appendChild(main);
